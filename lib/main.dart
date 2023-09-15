@@ -1,0 +1,833 @@
+import 'package:path_provider/path_provider.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:csv/csv.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:io';
+import 'dart:typed_data';
+import 'package:file_picker/file_picker.dart';
+import 'package:googleapis/drive/v3.dart' as drive;
+import 'package:google_sign_in/google_sign_in.dart' as signIn;
+
+/*
+app:foodapp
+package:com.example.foodapp
+Launcher:com.example.foodapp.MainActivity
+SHA1: 83:4D:3C:8A:4C:BB:10:13:48:81:E5:F3:EA:8D:E9:19:1B:0F:CC:B1
+ */
+//增加從雲端抓資料與輸出資料
+
+void main() {
+  runApp(const MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) { //返回一個 MaterialApp Widget，該Widget定義了應用程式的主題和首頁
+    return MaterialApp(
+      theme: ThemeData(
+        useMaterial3: true,
+      ),
+      debugShowCheckedModeBanner: false,
+      home: const HomePage(),
+    );
+  }
+}
+/*
+Future<void> _incrementCounter() async {
+  /*
+  setState(() {
+    _counter++;
+  });
+*/
+  final googleSignIn = signIn.GoogleSignIn.standard(scopes: [drive.DriveApi.DriveScope]);
+  final signIn.GoogleSignInAccount account = await googleSignIn.signIn();
+  print("User account $account");
+}
+*/
+Future<String> loadAsset() async { //這是一個用來非同步讀取資源的方法，返回一個表示CSV檔案內容的字串
+  return await rootBundle.loadString('assets/file.csv');
+}
+
+class HomePage extends StatefulWidget {
+  const HomePage({Key? key}) : super(key: key);
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {//HomePage 的狀態類別，用於管理狀態變化
+  List<List<dynamic>> _data = [];
+  @override
+  void initState() { //初始化狀態，然後調用 _loadCSV() 方法
+    super.initState();
+    _loadCSV();
+  }
+  String? _imagePath;
+  void deleteDataAtIndex(int index) {
+    setState(() {
+      _data.removeAt(index);
+    });
+  }
+  void addNewDataAtIndex(String listData, String newOption, String newPrice, int ord, int index) {
+    List<dynamic> newData = [ord, "", "", listData, newOption, newPrice, ""];
+    setState(() {
+      _data.insert(index, newData);
+    });
+  }
+  Future<void> saveCsvToLocalDirectory() async {
+    try {
+      final String csvContent = const ListToCsvConverter().convert(_data);
+      final directory = Directory('/data/user/0/com.example.foodapp/new'); // Update the path to your desired directory
+      if (!await directory.exists()) {
+        await directory.create(recursive: true);
+      }
+      final file = File('${directory.path}/new_data.csv');
+
+      // Write the CSV content to the new directory
+      await file.writeAsString(csvContent);
+
+      print('CSV data saved to new directory: ${file.path}');
+    } catch (e) {
+      print('Error saving CSV data: $e');
+    }
+  }
+  Future<void> _pickImage(int index) async {
+    final XFile? pickedImage = await ImagePicker().pickImage(
+      source: ImageSource.gallery, // Choose from the gallery
+    );
+
+    if (pickedImage != null) {
+      final imagePath = pickedImage.path;
+
+      try {
+        final newImagePath = '/data/user/0/com.example.foodapp/new/image_${DateTime.now().millisecondsSinceEpoch}.jpg';
+        final File newImageFile = await File(imagePath).copy(newImagePath);
+        setState(() {
+          _imagePath = newImagePath;
+          _data[index][6] = newImagePath; // Update _data[index][6] to include the new image path
+        });
+      } catch (e) {
+        print('Error copying image: $e');
+      }
+    }
+  }
+  Future<void> createNewDirectory() async {
+    final Directory newDirectory = Directory('/data/user/0/com.example.foodapp/new');
+    if (!await newDirectory.exists()) {
+      await newDirectory.create(recursive: true);
+    }
+  }
+  Future<void> movePhotosToNewDirectory() async {
+    final Directory cacheDirectory = await getTemporaryDirectory();
+    final Directory newDirectory = Directory('/data/user/0/com.example.foodapp/new');
+
+    for (final file in await cacheDirectory.list().toList()) {
+      if (file is File) {
+        final newFilePath = '${newDirectory.path}/${file.uri.pathSegments.last}';
+        await file.copy(newFilePath);
+      }
+    }
+  }
+  Future<void> saveCsvToNewDirectory() async {
+    try {
+      final String csvContent = const ListToCsvConverter().convert(_data);
+
+      final Directory newDirectory = Directory('/data/user/0/com.example.foodapp/new');
+      final file = File('${newDirectory.path}/new_data.csv');
+
+      // Write the CSV content to the new directory
+      await file.writeAsString(csvContent);
+
+      print('CSV data saved to new directory: ${file.path}');
+    } catch (e) {
+      print('Error saving CSV data: $e');
+    }
+  }
+  showAlertDialog(BuildContext context, String listData ,int ord,int index) {
+    TextEditingController textFieldController1 = TextEditingController();
+    TextEditingController textFieldController2 = TextEditingController();
+    AlertDialog dialog = AlertDialog(
+      //title: Text("AlertDialog component"),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(listData),
+          TextField(
+            controller: textFieldController1,
+            decoration: InputDecoration(labelText: "填寫新選項"),
+          ),
+          TextField(
+            controller: textFieldController2,
+            decoration: InputDecoration(labelText: "填寫價格"),
+          ),
+        ],
+      ),
+      actions: [
+        ElevatedButton(
+          child: Text("新增"),
+          onPressed: () {
+            // Access input values using textFieldController1.text and textFieldController2.text
+            String newOption = textFieldController1.text;
+            String newPrice = textFieldController2.text;
+            addNewDataAtIndex(listData, newOption, newPrice, ord, index);
+            Navigator.pop(context);
+          },
+        ),
+        ElevatedButton(
+          child: Text("取消"),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
+      ],
+    );
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return dialog;
+      },
+    );
+  }
+  showAlertDialog2(BuildContext context, String listData ,int ord,int index) {
+    TextEditingController textFieldController1 = TextEditingController();
+    TextEditingController textFieldController2 = TextEditingController();
+    TextEditingController textFieldController3 = TextEditingController();
+    AlertDialog dialog = AlertDialog(
+      //title: Text("AlertDialog component"),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          TextField(
+            controller: textFieldController1,
+            decoration: InputDecoration(labelText: "填寫新品項"),
+          ),
+          TextField(
+            controller: textFieldController2,
+            decoration: InputDecoration(labelText: "填寫新選項"),
+          ),
+          TextField(
+            controller: textFieldController3,
+            decoration: InputDecoration(labelText: "填寫價格"),
+          ),
+        ],
+      ),
+      actions: [
+        ElevatedButton(
+          child: Text("新增"),
+          onPressed: () {
+            // Access input values using textFieldController1.text and textFieldController2.text
+            String newshop = textFieldController1.text;
+            String newOption = textFieldController2.text;
+            String newPrice = textFieldController3.text;
+            addNewDataAtIndex(newshop, newOption, newPrice, ord, index);
+            Navigator.pop(context);
+          },
+        ),
+        ElevatedButton(
+          child: Text("取消"),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
+      ],
+    );
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return dialog;
+      },
+    );
+
+
+  }
+/*
+  void _loadCSV() async {
+    final rawData = await rootBundle.loadString("assets/M1.csv");
+    List<List<dynamic>> listData = const CsvToListConverter().convert(rawData);
+    setState(() {
+      _data = listData;
+    });
+  }
+*/
+
+  Future<void> _loadCSV() async {
+    try {
+      final File file = File('/data/user/0/com.example.foodapp/new/new_data.csv'); // Updated path to your CSV file
+      if (await file.exists()) {
+        final String rawData = await file.readAsString();
+        final List<List<dynamic>> listData = const CsvToListConverter().convert(rawData);
+
+        setState(() {
+          _data = listData;
+        });
+      } else {
+        print('CSV file does not exist.');
+      }
+    } catch (e) {
+      print('Error loading CSV file: $e');
+    }
+  }
+
+  showAlertDialog3(BuildContext context, String listData ,int ord,int index) {
+    TextEditingController textFieldController1 = TextEditingController();
+    AlertDialog dialog = AlertDialog(
+      //title: Text("AlertDialog component"),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(listData),
+          TextField(
+            controller: textFieldController1,
+            decoration: InputDecoration(labelText: "填寫新選項"),
+          ),
+        ],
+      ),
+      actions: [
+        ElevatedButton(
+          child: Text("新增"),
+          onPressed: () {
+            // Access input values using textFieldController1.text and textFieldController2.text
+            String newOption = textFieldController1.text;
+            addNewDataAtIndex(listData, newOption, '' , ord, index);
+            Navigator.pop(context);
+          },
+        ),
+        ElevatedButton(
+          child: Text("取消"),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
+      ],
+    );
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return dialog;
+      },
+    );
+  }
+
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      /*
+      appBar: AppBar(
+        title: Text("Blofood"),
+      ),
+      */
+
+        body: ListView(
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start, // 將子元素靠左對齊
+              children: [
+                const Padding(
+                  padding: EdgeInsets.all(15),
+                ),
+                const Padding(
+                  padding: EdgeInsets.all(15.0),
+                  child: Text(
+                    "店家菜單",
+                    style: TextStyle(
+                      fontSize: 30,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                const Padding(
+                  padding: EdgeInsets.only(top: 15, left: 10.0, bottom: 15),
+                  //const EdgeInsets.only(left: 40.0)
+                  child: Text(
+                    "單點",
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                for (int index = 0; index < _data.length; index++)
+                  if(_data[index][0] == 1)
+                    ListTile(
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Padding(
+                                padding: EdgeInsets.only(left: 0.0),
+                              ),
+                              Expanded( //新增圖片
+                                child:
+                                Row(
+                                  children: [
+                                    if(index ==0)
+                                      if (_data[index][6] == ""&&index ==0)
+                                        Expanded(
+                                          child: TextButton(
+                                            onPressed: () async {
+                                              showDialog(
+                                                context: context,
+                                                builder: (BuildContext context) {
+                                                  return AlertDialog(
+                                                    title: Text("上傳圖片"),
+                                                    actions: [
+                                                      TextButton(
+                                                        onPressed: () async {
+                                                          Navigator.pop(context); // Close the dialog
+                                                          final pickedFile = await ImagePicker().getImage(
+                                                            source: ImageSource.camera,
+                                                          );
+
+                                                          if (pickedFile != null) {
+                                                            final imagePath = pickedFile.path;
+                                                            final newImagePath = '/data/user/0/com.example.foodapp/new/image_${DateTime.now().millisecondsSinceEpoch}.jpg';
+
+                                                            try {
+                                                              final File newImageFile = await File(imagePath).copy(newImagePath);
+                                                              setState(() {
+                                                                _data[index][6] = newImagePath;
+                                                              });
+                                                            } catch (e) {
+                                                              print('Error copying image: $e');
+                                                            }
+                                                          }
+                                                        },
+                                                        child: Text("相機"),
+                                                      ),
+                                                      TextButton(
+                                                        onPressed: () async {
+                                                          //todo
+                                                          Navigator.pop(context); // 關閉對話框
+                                                        },
+                                                        child: Text("從相簿選擇照片"),
+                                                      ),
+                                                    ],
+                                                  );
+                                                },
+                                              );
+                                            },
+                                            child: const Icon(
+                                              Icons.photo_camera,
+                                              color: Colors.blue,
+                                            ),
+                                          ),
+                                        ),
+                                    if (_data[index][6] != ""&&index ==0)
+                                      Expanded(
+                                        child: Stack(
+                                          children: [
+                                            Image.file(
+                                              File(_data[index][6]),
+                                              width: 100,
+                                              height: 50,
+                                              fit: BoxFit.cover,
+                                            ),
+                                            Positioned(
+                                              top: 0,
+                                              right: 0,
+                                              child: GestureDetector(
+                                                onTap: () {
+                                                  setState(() {
+                                                    _data[index][6] = ""; // Remove the image path
+                                                  });
+                                                },
+                                                child: Container(
+                                                  padding: EdgeInsets.all(5),
+                                                  decoration: BoxDecoration(
+                                                    shape: BoxShape.circle,
+                                                    color: Colors.red,
+                                                  ),
+                                                  child: Icon(
+                                                    Icons.close,
+                                                    color: Colors.white,
+                                                    size: 16,
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    if(index > 0)
+                                      if(_data[index][3] != _data[index - 1][3]&&index > 0 )
+                                        if (_data[index][6] == ""&&index > 0)
+                                          Expanded(
+                                            child: TextButton(
+                                              onPressed: () async {
+                                                showDialog(
+                                                  context: context,
+                                                  builder: (BuildContext context) {
+                                                    return AlertDialog(
+                                                      title: Text("上傳圖片"),
+                                                      actions: [
+                                                        TextButton(
+                                                          onPressed: () async {
+                                                            Navigator.pop(context); // Close the dialog
+                                                            final pickedFile = await ImagePicker().getImage(
+                                                              source: ImageSource.camera,
+                                                            );
+                                                            if (pickedFile != null) {
+                                                              final imagePath = pickedFile.path;
+                                                              final newImagePath = '/data/user/0/com.example.foodapp/new/image_${DateTime.now().millisecondsSinceEpoch}.jpg';
+
+                                                              try {
+                                                                final File newImageFile = await File(imagePath).copy(newImagePath);
+                                                                setState(() {
+                                                                  _data[index][6] = newImagePath;
+                                                                });
+                                                              } catch (e) {
+                                                                print('Error copying image: $e');
+                                                              }
+                                                            }
+                                                          },
+                                                          child: Text("相機"),
+                                                        ),
+                                                        TextButton(
+                                                          onPressed: () async {
+                                                            //todo 2
+                                                            _pickImage(index);
+
+                                                            Navigator.pop(context); // 關閉對話框
+                                                          },
+                                                          child: Text("從相簿選擇照片"),
+                                                        ),
+                                                      ],
+                                                    );
+                                                  },
+                                                );
+                                              },
+                                              child: const Icon(
+                                                Icons.photo_camera,
+                                                color: Colors.blue,
+                                              ),
+                                            ),
+                                          ),
+                                    if (_data[index][6] != ""&&index > 0)
+                                      Expanded(
+                                        child: Stack(
+                                          children: [
+                                            Image.file(
+                                              File(_data[index][6]),
+                                              width: 100,
+                                              height: 50,
+                                              fit: BoxFit.cover,
+                                            ),
+                                            Positioned(
+                                              top: 0,
+                                              right: 0,
+                                              child: GestureDetector(
+                                                onTap: () {
+                                                  setState(() {
+                                                    _data[index][6] = ""; // Remove the image path
+                                                  });
+                                                },
+                                                child: Container(
+                                                  padding: EdgeInsets.all(5),
+                                                  decoration: BoxDecoration(
+                                                  shape: BoxShape.circle,
+                                                  color: Colors.red,
+                                                  ),
+                                                  child: Icon(
+                                                    Icons.close,
+                                                    color: Colors.white,
+                                                    size: 16,
+                                                  ),
+                                                ),
+                                                  ),
+                                            ),
+                                        ],
+                                       ),
+                                    )
+                                  ],
+                                ),
+                              ),
+                              Expanded(//顯示第一欄  餐點名稱
+                                child:
+                                Row(
+                                  children: [
+                                    if(index ==0)
+                                      Text(_data[index][3].toString()),
+                                    if(index > 0)
+                                      if(_data[index][3] != _data[index - 1][3])
+                                        Text(_data[index][3].toString()),
+                                  ],
+                                ),
+                              ),
+                              Expanded(
+                                child: Column(
+                                  children: [
+                                    Text(_data[index][4].toString()),
+                                    if (_data.length-1>index)
+                                      if(_data[index][3] != _data[index + 1][3])
+                                        TextButton(
+                                          onPressed: () {
+                                            showAlertDialog(context, _data[index][3].toString(), 1, index+1);
+                                          },
+                                          child: const Icon(
+                                              Icons.add_circle_outline_sharp,
+                                              color: Colors.blue),
+                                        ),
+                                    if (_data.length-1 == index)
+                                      TextButton(
+                                        onPressed: () {
+                                          showAlertDialog(context, _data[index][3].toString(), 1, index+1);
+                                        },
+                                        child: const Icon(
+                                            Icons.add_circle_outline_sharp,
+                                            color: Colors.blue),
+                                      ),
+                                  ],
+                                ),
+                              ),
+                              Text(_data[index][5].toString()),
+                              TextButton(
+                                onPressed: () {
+                                  deleteDataAtIndex(index);
+                                },
+                                child: const Icon(Icons.remove_circle_outline, color: Colors.red),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                  TextButton(
+                    onPressed: () {
+                      int foundindex ;
+                      for (foundindex = 0; foundindex < _data.length && _data[foundindex][0] == 1; foundindex++){foundindex++;}
+                      showAlertDialog2(context, _data[foundindex][3].toString(), 1, foundindex-1);
+                    },
+                    child: const Icon(Icons.add_box_outlined, color: Colors.blue),
+                  ),
+                ]),
+                const Padding(
+                  padding: EdgeInsets.only(left: 30.0),
+                  //const EdgeInsets.only(left: 40.0)
+                  child: Text(
+                    "套餐",
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                for (int index = 0; index < _data.length; index++)
+                  if(_data[index][0] == 2)
+                    ListTile(
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Padding(
+                                padding: EdgeInsets.only(left: 30.0),
+                              ),
+                              Expanded(
+                                child: Row(
+                                  children: [
+                                    if(index ==0)
+                                      Text(_data[index][3].toString()),
+                                    if(index > 0)
+                                      if(_data[index][3] != _data[index - 1][3])
+                                        Text(_data[index][3].toString()),
+                                  ],
+                                ),
+                              ),
+                              Expanded(
+                                child: Column(
+                                  children: [
+                                    Text(_data[index][4].toString()),
+                                    if (_data.length-1>index)
+                                      if(_data[index][3] != _data[index + 1][3])
+                                        TextButton(
+                                          onPressed: () {
+                                            showAlertDialog3(context, _data[index][3].toString(), 2, index+1);
+                                          },
+                                          child: const Icon(
+                                              Icons.add_circle_outline_sharp,
+                                              color: Colors.blue),
+                                        ),
+                                    if (_data.length-1 == index)
+                                      TextButton(
+                                        onPressed: () {
+                                          showAlertDialog3(context, _data[index][3].toString(), 2, index+1);
+                                        },
+                                        child: const Icon(
+                                            Icons.add_circle_outline_sharp,
+                                            color: Colors.blue),
+                                      ),
+                                  ],
+                                ),
+                              ),
+                              Text(_data[index][5].toString()),
+                              TextButton(
+                                onPressed: () {
+                                  deleteDataAtIndex(index);
+                                },
+                                child: const Icon(Icons.remove_circle_outline, color: Colors.red),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                  TextButton(
+                    onPressed: () {
+                      int foundindex ;
+                      for (foundindex = 0; foundindex < _data.length && _data[foundindex][0] == 2||foundindex < _data.length && _data[foundindex][0] == 1; foundindex++){foundindex++;}
+                      showAlertDialog2(context, _data[foundindex][3].toString(), 2, foundindex-1);
+                    },
+                    child: const Icon(Icons.add_box_outlined, color: Colors.blue),
+                  ),
+                ]),
+                const Padding(
+                  padding: EdgeInsets.only(left: 30.0),
+                  //const EdgeInsets.only(left: 40.0)
+                  child: Text(
+                    "套餐選項",
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                for (int index = 0; index < _data.length; index++)
+                  if(_data[index][0] == 3)
+                    ListTile(
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Padding(
+                                padding: EdgeInsets.only(left: 30.0),
+                              ),
+                              Expanded(
+                                child: Row(
+                                  children: [
+
+                                    if(index ==0)
+                                      Text(_data[index][3].toString()),
+                                    if(index > 0)
+                                      if(_data[index][3] != _data[index - 1][3])
+                                        Text(_data[index][3].toString()),
+                                  ],
+                                ),
+                              ),
+                              Expanded(
+                                child: Column(
+                                  children: [
+                                    Text(_data[index][4].toString()),
+                                    if (_data.length-2>index)
+                                      if(_data[index][3] != _data[index + 1][3])
+                                        TextButton(
+                                          onPressed: () {
+                                            showAlertDialog(context, _data[index][3].toString(), 3, index+1);
+                                          },
+                                          child: const Icon(
+                                              Icons.add_circle_outline_sharp,
+                                              color: Colors.blue),
+                                        ),
+                                    if (_data.length-1 == index)
+                                      TextButton(
+                                        onPressed: () {
+                                          showAlertDialog(context, _data[index][3].toString(), 3, index+1);
+                                        },
+                                        child: const Icon(
+                                            Icons.add_circle_outline_sharp,
+                                            color: Colors.blue),
+                                      ),
+                                  ],
+                                ),
+                              ),
+                              Text(_data[index][5].toString()),
+                              TextButton(
+                                onPressed: () {
+                                  deleteDataAtIndex(index);
+                                },
+                                child: const Icon(Icons.remove_circle_outline, color: Colors.red),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                  TextButton(
+                    onPressed: () {
+                      int foundindex = _data.length-1;
+                      //for (foundindex = 0; foundindex < _data.length && _data[foundindex][0] == 1; foundindex++){foundindex++;}
+                      showAlertDialog2(context, _data[foundindex][3].toString(), 3, foundindex+1);
+                    },
+                    child: const Icon(Icons.add_box_outlined, color: Colors.blue),
+                  ),
+                ]),
+                Column(
+                  children: [
+                    const Padding(padding: EdgeInsets.all(15)),
+                    Container(
+                      alignment: Alignment.center,
+                      child: SizedBox(
+                        height: 75,
+                        width: 250,
+                        child: FilledButton(
+                          style: TextButton.styleFrom(
+                            backgroundColor: Colors.blue,
+                            padding: const EdgeInsets.all(16.0),
+                            textStyle: const TextStyle(fontSize: 20),
+                          ),
+                          onPressed: () async {
+                            await createNewDirectory();
+                            await movePhotosToNewDirectory();
+                            await saveCsvToNewDirectory();
+                            for (int cs = 0; cs < _data.length; cs++) {
+                              _data[cs][2] = cs + 1;
+                            }
+                            saveCsvToLocalDirectory();
+
+                            // 操作完成後顯示更新成功的對話框
+                            showDialog(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return AlertDialog(
+                                  title: Text('更新成功'),
+                                  content: Text('資料已上傳雲端'),
+
+                                  actions: <Widget>[
+                                    TextButton(
+                                      child: Text('確定'),
+                                      onPressed: () {
+                                        Navigator.of(context).pop();
+                                      },
+                                    ),
+                                  ],
+
+                                );
+                              },
+                            );
+                          },
+                          child: const Text('確認更改'),
+                        ),
+                      ),
+                    ),
+                    const Padding(padding: EdgeInsets.all(30)),
+                  ],
+                ),
+              ],
+            ),
+          ],
+        ));
+  }
+
+}
