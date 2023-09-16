@@ -10,7 +10,7 @@ import 'dart:typed_data';
 import 'package:file_picker/file_picker.dart';
 import 'package:googleapis/drive/v3.dart' as drive;
 import 'package:google_sign_in/google_sign_in.dart' as signIn;
-
+import 'package:http/http.dart' as http;
 /*
 app:foodapp
 package:com.example.foodapp
@@ -18,7 +18,17 @@ Launcher:com.example.foodapp.MainActivity
 SHA1: 83:4D:3C:8A:4C:BB:10:13:48:81:E5:F3:EA:8D:E9:19:1B:0F:CC:B1
  */
 //增加從雲端抓資料與輸出資料
+class GoogleAuthClient extends http.BaseClient {
+  final Map<String, String> _headers;
 
+  final http.Client _client = new http.Client();
+
+  GoogleAuthClient(this._headers);
+
+  Future<http.StreamedResponse> send(http.BaseRequest request) {
+    return _client.send(request..headers.addAll(_headers));
+  }
+}
 void main() {
   runApp(const MyApp());
 }
@@ -37,18 +47,7 @@ class MyApp extends StatelessWidget {
     );
   }
 }
-/*
-Future<void> _incrementCounter() async {
-  /*
-  setState(() {
-    _counter++;
-  });
-*/
-  final googleSignIn = signIn.GoogleSignIn.standard(scopes: [drive.DriveApi.DriveScope]);
-  final signIn.GoogleSignInAccount account = await googleSignIn.signIn();
-  print("User account $account");
-}
-*/
+
 Future<String> loadAsset() async { //這是一個用來非同步讀取資源的方法，返回一個表示CSV檔案內容的字串
   return await rootBundle.loadString('assets/file.csv');
 }
@@ -61,6 +60,21 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {//HomePage 的狀態類別，用於管理狀態變化
   List<List<dynamic>> _data = [];
+  Future<void> saveCsvToNewDirectory() async {
+    try {
+      final String csvContent = const ListToCsvConverter().convert(_data);
+
+      final Directory newDirectory = Directory('/data/user/0/com.example.foodapp/new');
+      final file = File('${newDirectory.path}/new_data.csv');
+
+      // Write the CSV content to the new directory
+      await file.writeAsString(csvContent);
+
+      print('CSV data saved to new directory: ${file.path}');
+    } catch (e) {
+      print('Error saving CSV data: $e');
+    }
+  }
   @override
   void initState() { //初始化狀態，然後調用 _loadCSV() 方法
     super.initState();
@@ -132,19 +146,27 @@ class _HomePageState extends State<HomePage> {//HomePage 的狀態類別，用�
       }
     }
   }
-  Future<void> saveCsvToNewDirectory() async {
-    try {
-      final String csvContent = const ListToCsvConverter().convert(_data);
+  Future<void> _incrementCounter() async {
+    final googleSignIn = signIn.GoogleSignIn.standard(scopes: [drive.DriveApi.driveScope]);
+    final signIn.GoogleSignInAccount? account = await googleSignIn.signIn();
+    print("User account $account");
 
-      final Directory newDirectory = Directory('/data/user/0/com.example.foodapp/new');
-      final file = File('${newDirectory.path}/new_data.csv');
-
-      // Write the CSV content to the new directory
-      await file.writeAsString(csvContent);
-
-      print('CSV data saved to new directory: ${file.path}');
-    } catch (e) {
-      print('Error saving CSV data: $e');
+    if (account != null) {
+      final authHeaders = await account.authHeaders;
+      if (authHeaders != null) {
+        final authenticateClient = GoogleAuthClient(authHeaders);//建立帳戶與身分驗證
+        final driveApi = drive.DriveApi(authenticateClient);//建立一個 Google Drive API 的客戶端
+        final Stream<List<int>> mediaStream = Future.value([102,105]).asStream().asBroadcastStream();   //上傳內容
+        var media = new drive.Media(mediaStream, 2);// 建立了一個 media 變數，它是用來代表要上傳的媒體內容的物件
+        var driveFile = new drive.File();
+        driveFile.name = "hello.txt";
+        final result = await driveApi.files.create(driveFile, uploadMedia: media);
+        print("Upload result: $result");
+      } else {
+        print("Auth headers are null");
+      }
+    } else {
+      print("Account is null");
     }
   }
   showAlertDialog(BuildContext context, String listData ,int ord,int index) {
@@ -795,8 +817,9 @@ class _HomePageState extends State<HomePage> {//HomePage 的狀態類別，用�
                               _data[cs][2] = cs + 1;
                             }
                             saveCsvToLocalDirectory();
-
+                            await _incrementCounter();
                             // 操作完成後顯示更新成功的對話框
+/*
                             showDialog(
                               context: context,
                               builder: (BuildContext context) {
@@ -816,6 +839,8 @@ class _HomePageState extends State<HomePage> {//HomePage 的狀態類別，用�
                                 );
                               },
                             );
+
+ */
                           },
                           child: const Text('確認更改'),
                         ),
