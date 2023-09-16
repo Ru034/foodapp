@@ -3,14 +3,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:csv/csv.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:path_provider/path_provider.dart';
+
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:file_picker/file_picker.dart';
 import 'package:googleapis/drive/v3.dart' as drive;
 import 'package:google_sign_in/google_sign_in.dart' as signIn;
+import 'package:http/http.dart' as http;
 
+
+import 'package:googleapis_auth/googleapis_auth.dart' as auth;
+import 'package:googleapis/drive/v3.dart' show Media;
 /*
 app:foodapp
 package:com.example.foodapp
@@ -18,7 +22,17 @@ Launcher:com.example.foodapp.MainActivity
 SHA1: 83:4D:3C:8A:4C:BB:10:13:48:81:E5:F3:EA:8D:E9:19:1B:0F:CC:B1
  */
 //增加從雲端抓資料與輸出資料
+class GoogleAuthClient extends http.BaseClient {
+  final Map<String, String> _headers;
 
+  final http.Client _client = new http.Client();
+
+  GoogleAuthClient(this._headers);
+
+  Future<http.StreamedResponse> send(http.BaseRequest request) {
+    return _client.send(request..headers.addAll(_headers));
+  }
+}
 void main() {
   runApp(const MyApp());
 }
@@ -37,18 +51,7 @@ class MyApp extends StatelessWidget {
     );
   }
 }
-/*
-Future<void> _incrementCounter() async {
-  /*
-  setState(() {
-    _counter++;
-  });
-*/
-  final googleSignIn = signIn.GoogleSignIn.standard(scopes: [drive.DriveApi.DriveScope]);
-  final signIn.GoogleSignInAccount account = await googleSignIn.signIn();
-  print("User account $account");
-}
-*/
+
 Future<String> loadAsset() async { //這是一個用來非同步讀取資源的方法，返回一個表示CSV檔案內容的字串
   return await rootBundle.loadString('assets/file.csv');
 }
@@ -61,6 +64,21 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {//HomePage 的狀態類別，用於管理狀態變化
   List<List<dynamic>> _data = [];
+  Future<void> saveCsvToNewDirectory() async {
+    try {
+      final String csvContent = const ListToCsvConverter().convert(_data);
+
+      final Directory newDirectory = Directory('/data/user/0/com.example.foodapp/new');
+      final file = File('${newDirectory.path}/new_data.csv');
+
+      // Write the CSV content to the new directory
+      await file.writeAsString(csvContent);
+
+      print('CSV data saved to new directory: ${file.path}');
+    } catch (e) {
+      print('Error saving CSV data: $e');
+    }
+  }
   @override
   void initState() { //初始化狀態，然後調用 _loadCSV() 方法
     super.initState();
@@ -132,19 +150,73 @@ class _HomePageState extends State<HomePage> {//HomePage 的狀態類別，用�
       }
     }
   }
-  Future<void> saveCsvToNewDirectory() async {
-    try {
-      final String csvContent = const ListToCsvConverter().convert(_data);
+  Future<void> _incrementCounter() async {
+    final googleSignIn = signIn.GoogleSignIn.standard(scopes: [drive.DriveApi.driveScope]);
+    final signIn.GoogleSignInAccount? account = await googleSignIn.signIn();
+    print("User account $account");
 
-      final Directory newDirectory = Directory('/data/user/0/com.example.foodapp/new');
-      final file = File('${newDirectory.path}/new_data.csv');
+    if (account != null) {
+      final authHeaders = await account.authHeaders;
+      if (authHeaders != null) {
+        final authenticateClient = GoogleAuthClient(authHeaders);
+        final driveApi = drive.DriveApi(authenticateClient);
 
-      // Write the CSV content to the new directory
-      await file.writeAsString(csvContent);
+        // 在 Google Drive 上建立 "flutter_menu" 資料夾
+        final folderMetadata = drive.File()
+          ..name = "flutter_menu"
+          ..mimeType = "application/vnd.google-apps.folder";
 
-      print('CSV data saved to new directory: ${file.path}');
-    } catch (e) {
-      print('Error saving CSV data: $e');
+        final folder = await driveApi.files.create(folderMetadata);
+
+        if (folder.id != null) {
+          // 指定本地文件夾路徑
+          final localFolderPath = '/data/user/0/com.example.foodapp/new';
+
+          // 上傳文件夾中的內容到 "flutter_menu" 資料夾
+          await _uploadFolderContents(driveApi, localFolderPath, parentFolderId: folder.id);
+        }
+      } else {
+        print("Auth headers are null");
+      }
+    } else {
+      print("Account is null");
+    }
+  }
+  Future<void> _uploadFolderContents(drive.DriveApi driveApi, String localFolderPath, {String? parentFolderId}) async {
+    final dir = Directory(localFolderPath);
+
+    if (dir.existsSync()) {
+      for (final fileSystemEntity in dir.listSync()) {
+        if (fileSystemEntity is File) {
+          // 上傳文件
+          final driveFile = drive.File();
+          driveFile.name = fileSystemEntity.uri.pathSegments.last;
+
+          if (parentFolderId != null) { // Check if parentFolderId is not null
+            driveFile.parents = [parentFolderId];
+          }
+
+          final media = Media(fileSystemEntity.openRead(), fileSystemEntity.lengthSync());
+          final result = await driveApi.files.create(driveFile, uploadMedia: media);
+          print("Uploaded ${driveFile.name}: ${result.toJson()}");
+        } else if (fileSystemEntity is Directory) {
+          // 上傳子文件夾
+          final driveFolder = drive.File();
+          driveFolder.name = fileSystemEntity.uri.pathSegments.last;
+
+          if (parentFolderId != null) { // Check if parentFolderId is not null
+            driveFolder.parents = [parentFolderId];
+          }
+
+          driveFolder.mimeType = 'application/vnd.google-apps.folder';
+
+          final result = await driveApi.files.create(driveFolder);
+          print("Created folder ${driveFolder.name}: ${result.toJson()}");
+
+          // 遞迴上傳子文件夾的內容
+          await _uploadFolderContents(driveApi, fileSystemEntity.path, parentFolderId: result.id);
+        }
+      }
     }
   }
   showAlertDialog(BuildContext context, String listData ,int ord,int index) {
@@ -531,8 +603,8 @@ class _HomePageState extends State<HomePage> {//HomePage 的狀態類別，用�
                                                 child: Container(
                                                   padding: EdgeInsets.all(5),
                                                   decoration: BoxDecoration(
-                                                  shape: BoxShape.circle,
-                                                  color: Colors.red,
+                                                    shape: BoxShape.circle,
+                                                    color: Colors.red,
                                                   ),
                                                   child: Icon(
                                                     Icons.close,
@@ -540,11 +612,11 @@ class _HomePageState extends State<HomePage> {//HomePage 的狀態類別，用�
                                                     size: 16,
                                                   ),
                                                 ),
-                                                  ),
+                                              ),
                                             ),
-                                        ],
-                                       ),
-                                    )
+                                          ],
+                                        ),
+                                      )
                                   ],
                                 ),
                               ),
@@ -795,8 +867,9 @@ class _HomePageState extends State<HomePage> {//HomePage 的狀態類別，用�
                               _data[cs][2] = cs + 1;
                             }
                             saveCsvToLocalDirectory();
-
+                            await _incrementCounter();
                             // 操作完成後顯示更新成功的對話框
+/*
                             showDialog(
                               context: context,
                               builder: (BuildContext context) {
@@ -816,6 +889,8 @@ class _HomePageState extends State<HomePage> {//HomePage 的狀態類別，用�
                                 );
                               },
                             );
+
+ */
                           },
                           child: const Text('確認更改'),
                         ),
