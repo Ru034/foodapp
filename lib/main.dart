@@ -11,10 +11,12 @@ import 'package:file_picker/file_picker.dart';
 import 'package:googleapis/drive/v3.dart' as drive;
 import 'package:google_sign_in/google_sign_in.dart' as signIn;
 import 'package:http/http.dart' as http;
-
-
 import 'package:googleapis_auth/googleapis_auth.dart' as auth;
 import 'package:googleapis/drive/v3.dart' show Media;
+
+import 'package:googleapis_auth/auth_io.dart';
+import 'dart:convert'; // for utf8
+import 'dart:async'; // for Stream
 /*
 app:foodapp
 package:com.example.foodapp
@@ -24,11 +26,8 @@ SHA1: 83:4D:3C:8A:4C:BB:10:13:48:81:E5:F3:EA:8D:E9:19:1B:0F:CC:B1
 //增加從雲端抓資料與輸出資料
 class GoogleAuthClient extends http.BaseClient {
   final Map<String, String> _headers;
-
   final http.Client _client = new http.Client();
-
   GoogleAuthClient(this._headers);
-
   Future<http.StreamedResponse> send(http.BaseRequest request) {
     return _client.send(request..headers.addAll(_headers));
   }
@@ -36,10 +35,8 @@ class GoogleAuthClient extends http.BaseClient {
 void main() {
   runApp(const MyApp());
 }
-
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
-
   @override
   Widget build(BuildContext context) { //返回一個 MaterialApp Widget，該Widget定義了應用程式的主題和首頁
     return MaterialApp(
@@ -64,6 +61,8 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {//HomePage 的狀態類別，用於管理狀態變化
   List<List<dynamic>> _data = [];
+
+  get auth2 => null;
   Future<void> saveCsvToNewDirectory() async {
     try {
       final String csvContent = const ListToCsvConverter().convert(_data);
@@ -313,37 +312,7 @@ class _HomePageState extends State<HomePage> {//HomePage 的狀態類別，用�
         return dialog;
       },
     );
-
-
   }
-/*
-  void _loadCSV() async {
-    final rawData = await rootBundle.loadString("assets/M1.csv");
-    List<List<dynamic>> listData = const CsvToListConverter().convert(rawData);
-    setState(() {
-      _data = listData;
-    });
-  }
-*/
-
-  Future<void> _loadCSV() async {
-    try {
-      final File file = File('/data/user/0/com.example.foodapp/new/new_data.csv'); // Updated path to your CSV file
-      if (await file.exists()) {
-        final String rawData = await file.readAsString();
-        final List<List<dynamic>> listData = const CsvToListConverter().convert(rawData);
-
-        setState(() {
-          _data = listData;
-        });
-      } else {
-        print('CSV file does not exist.');
-      }
-    } catch (e) {
-      print('Error loading CSV file: $e');
-    }
-  }
-
   showAlertDialog3(BuildContext context, String listData ,int ord,int index) {
     TextEditingController textFieldController1 = TextEditingController();
     AlertDialog dialog = AlertDialog(
@@ -385,6 +354,39 @@ class _HomePageState extends State<HomePage> {//HomePage 的狀態類別，用�
   }
 
 
+
+
+  void _loadCSV() async {
+    final rawData = await rootBundle.loadString("assets/M1.csv");
+    List<List<dynamic>> listData = const CsvToListConverter().convert(rawData);
+    setState(() {
+      _data = listData;
+    });
+  }
+
+
+
+/*
+  Future<void> _loadCSV() async {
+    try {
+      final File file = File('/data/user/0/com.example.foodapp/new/new_data.csv'); // Updated path to your CSV file
+      if (await file.exists()) {
+        final String rawData = await file.readAsString();
+        final List<List<dynamic>> listData = const CsvToListConverter().convert(rawData);
+
+        setState(() {
+          _data = listData;
+        });
+      } else {
+        print('CSV file does not exist.');
+      }
+    } catch (e) {
+      print('Error loading CSV file: $e');
+    }
+  }
+
+ */
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -399,6 +401,50 @@ class _HomePageState extends State<HomePage> {//HomePage 的狀態類別，用�
             Column(
               crossAxisAlignment: CrossAxisAlignment.start, // 將子元素靠左對齊
               children: [
+                TextButton(
+                  onPressed: () async {
+                    /*
+                    final googleSignIn = signIn.GoogleSignIn.standard(scopes: [drive.DriveApi.driveScope]);
+                    final signIn.GoogleSignInAccount? account = await googleSignIn.signIn();
+                    if (account != null) {
+                      final authHeaders = await account.authHeaders;
+                      if (authHeaders != null) {
+                        final authenticateClient = GoogleAuthClient(authHeaders);
+                        final driveApi = drive.DriveApi(authenticateClient);
+
+                        // In Google Drive, specify the folder to download from and the local folder to copy to
+                        final googleDriveFolderId = 'YOUR_GOOGLE_DRIVE_FOLDER_ID_HERE';
+                        final localFolderPath = '/data/user/0/com.example.foodapp/new';
+
+                        final directory = Directory(localFolderPath);
+                        if (directory.existsSync()) {
+                          directory.deleteSync(recursive: true);
+                        }
+                        directory.createSync(recursive: true);
+
+                        final fileList = await driveApi.files.list(q: "'$googleDriveFolderId' in parents");
+                        for (final file in fileList.files!) {
+                          final drive.Media fileData = await driveApi.files.get(file.id!, downloadOptions: drive.DownloadOptions.fullMedia) as drive.Media;
+                          final Stream<List<int>> stream = fileData.stream;
+
+                          final localFile = File('$localFolderPath/${file.name}');
+                          final IOSink sink = localFile.openWrite();
+                          await for (final chunk in stream) {
+                            sink.add(chunk);
+                          }
+                          await sink.close();
+                        }
+                      } else {
+                        print("Auth headers are null");
+                      }
+                    } else {
+                      print("Account is null");
+                    }
+
+                     */
+                  },
+                  child: Text("測試"),
+                ),
                 const Padding(
                   padding: EdgeInsets.all(15),
                 ),
@@ -475,6 +521,7 @@ class _HomePageState extends State<HomePage> {//HomePage 的狀態類別，用�
                                                       ),
                                                       TextButton(
                                                         onPressed: () async {
+                                                          _pickImage(index);
                                                           //todo
                                                           Navigator.pop(context); // 關閉對話框
                                                         },
