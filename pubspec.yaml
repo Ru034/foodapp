@@ -38,11 +38,8 @@ dependencies:
   google_sign_in: any
   googleapis_auth: 1.4.1
 
-  #googleapis_auth_oauth2: ^2.0.0
-  #googleapis_drive: ^3.0.1
-  #googleapis_sheets: ^4.0.0
-  #googleapis_storage: ^3.0.0
-
+  #googleapis_auth_oauth2:
+  #googleapis_drive:
 
 
 
