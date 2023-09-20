@@ -17,6 +17,7 @@ import 'package:googleapis_auth/auth_io.dart';
 import 'dart:convert'; // for utf8
 import 'dart:async'; // for Stream
 import 'menu.dart';
+import 'sign_in.dart';
 
 /*
 app:foodapp
@@ -25,16 +26,7 @@ Launcher:com.example.foodapp.MainActivity
 SHA1: 83:4D:3C:8A:4C:BB:10:13:48:81:E5:F3:EA:8D:E9:19:1B:0F:CC:B1
  */
 //增加從雲端抓資料與輸出資料
-class GoogleAuthClient extends http.BaseClient {
-  final Map<String, String> _headers;
-  final http.Client _client = new http.Client();
 
-  GoogleAuthClient(this._headers);
-
-  Future<http.StreamedResponse> send(http.BaseRequest request) {
-    return _client.send(request..headers.addAll(_headers));
-  }
-}
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -57,10 +49,7 @@ class MyApp extends StatelessWidget {
   }
 }
 
-Future<String> loadAsset() async {
-  //這是一個用來非同步讀取資源的方法，返回一個表示CSV檔案內容的字串
-  return await rootBundle.loadString('assets/file.csv');
-}
+
 
 class HomePage extends StatefulWidget {
   //const HomePage({Key? key}) : super(key: key);
@@ -95,6 +84,12 @@ class _HomePageState extends State<HomePage> {
                 Navigator.push(context , MaterialPageRoute(builder: (context) =>menu()));
               },
               child: Text("打開菜單"),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                Navigator.push(context , MaterialPageRoute(builder: (context) =>sign_in()));
+              },
+              child: Text("註冊"),
             ),
           ],
         ),

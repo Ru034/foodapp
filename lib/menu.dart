@@ -336,7 +336,7 @@ class _HomePageState extends State<HomePage> {
         ElevatedButton(
           child: Text("取消"),
           onPressed: () {
-            Navigator.pop(context);
+            Navigator.pop();
           },
         ),
 
