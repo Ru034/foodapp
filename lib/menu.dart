@@ -184,34 +184,32 @@ class _HomePageState extends State<HomePage> {
     print("User account $account");
 
     if (account != null) {
-      final authHeaders = await account
-          .authHeaders; //從登錄的帳戶中獲取身份驗證標頭（auth headers）。這些標頭將用於進行 Google Drive API 的身份驗證。
+      final authHeaders = await account.authHeaders; //從登錄的帳戶中獲取身份驗證標頭（auth headers）。這些標頭將用於進行 Google Drive API 的身份驗證。
       if (authHeaders != null) {
         //檢查身份驗證標頭是否成功獲取。如果 authHeaders 不是 null，表示已經成功獲取身份驗證標頭。
-        final authenticateClient = GoogleAuthClient(
-            authHeaders); //創建一個 GoogleAuthClient，這是一個用於進行 Google API 請求的客戶端，使用先前獲取的身份驗證標頭進行身份驗證。
-        final driveApi = drive.DriveApi(
-            authenticateClient); //創建一個 Google Drive API 客戶端，使用 GoogleAuthClient 進行身份驗證。
+        final authenticateClient = GoogleAuthClient(authHeaders); //創建一個 GoogleAuthClient，這是一個用於進行 Google API 請求的客戶端，使用先前獲取的身份驗證標頭進行身份驗證。
+        final driveApi = drive.DriveApi(authenticateClient); //創建一個 Google Drive API 客戶端，使用 GoogleAuthClient 進行身份驗證。
 
         // 在 Google Drive 上建立 "flutter_menu" 資料夾
-        final folderMetadata = drive
-            .File() //創建一個表示 Google Drive 上資料夾的元數據（metadata）。這個資料夾的名稱是 "flutter_menu"，並設定了 MIME 類型為 Google Drive 資料夾。
+        final folderMetadata = drive.File() //創建一個表示 Google Drive 上資料夾的元數據（metadata）。這個資料夾的名稱是 "flutter_menu"，並設定了 MIME 類型為 Google Drive 資料夾。
           ..name = "flutter_menu"
           ..mimeType = "application/vnd.google-apps.folder";
 
-        final folder = await driveApi.files.create(
-            folderMetadata); //使用 Google Drive API 創建一個名為 "flutter_menu" 的資料夾，並獲取創建後的資料夾對象。
-
+        final folder = await driveApi.files.create(folderMetadata); //使用 Google Drive API 創建一個名為 "flutter_menu" 的資料夾，並獲取創建後的資料夾對象。
         if (folder.id != null) {
           //檢查創建資料夾操作是否成功，如果成功，則繼續執行後續操作。
           // 指定本地文件夾路徑
-          final localFolderPath =
-              '/data/user/0/com.example.foodapp/new'; //定義了本地文件夾的路徑，這個文件夾中的內容將被上傳到 Google Drive 的
-
+          final localFolderPath = '/data/user/0/com.example.foodapp/new'; //定義了本地文件夾的路徑，這個文件夾中的內容將被上傳到 Google Drive 的
           // 上傳文件夾中的內容到 "flutter_menu" 資料夾
-          await _uploadFolderContents(driveApi, localFolderPath,
-              parentFolderId: folder
-                  .id); //調用 _uploadFolderContents 函數，該函數似乎用於上傳本地文件夾的內容到 Google Drive 的資料夾中，並將 Google Drive 資料夾的ID作為參數傳遞。
+          await _uploadFolderContents(driveApi, localFolderPath, parentFolderId: folder.id); //調用 _uploadFolderContents 函數，該函數似乎用於上傳本地文件夾的內容到 Google Drive 的資料夾中，並將 Google Drive 資料夾的ID作為參數傳遞。
+
+          final permission = drive.Permission()
+            ..type = "anyone"
+            ..role = "reader";
+          await driveApi.permissions.create(permission, folder.id!);
+          // 获取文件夹的 URL
+          final folderUrl = "https://drive.google.com/drive/folders/${folder.id}";
+          print("Folder URL: $folderUrl");
         }
       } else {
         print("Auth headers are null");
