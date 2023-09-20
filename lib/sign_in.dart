@@ -248,11 +248,28 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ],
                 ),
-                ElevatedButton(
-                  onPressed: () async {
-                    _incrementCounter();
-                  },
-                  child: Text("連接雲端帳號"),
+                Row(
+                  children: [
+                    const Padding(
+                      padding: EdgeInsets.only(top: 2, left: 20.0, bottom: 15),
+                      child: Text(
+                        "google連接:",
+                        style: TextStyle(
+                          fontSize: 18,
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 10), // Add spacing between text and input field
+                    Expanded(
+                      child:
+                      ElevatedButton(
+                        onPressed: () async {
+                          _incrementCounter();
+                        },
+                        child: Text("連接雲端帳號"),
+                      ),
+                    ),
+                  ],
                 ),
                 ElevatedButton(
                   onPressed: () async {
