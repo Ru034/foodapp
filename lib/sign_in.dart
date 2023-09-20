@@ -1,4 +1,23 @@
+import 'package:path_provider/path_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:csv/csv.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:io';
+import 'dart:typed_data';
+import 'package:file_picker/file_picker.dart';
+import 'package:googleapis/drive/v3.dart' as drive;
+import 'package:google_sign_in/google_sign_in.dart' as signIn;
+import 'package:http/http.dart' as http;
+import 'package:googleapis_auth/googleapis_auth.dart' as auth;
+import 'package:googleapis/drive/v3.dart' show Media;
+import 'package:file_picker/file_picker.dart';
+import 'package:googleapis_auth/auth_io.dart';
+import 'dart:convert'; // for utf8
+import 'dart:async'; // for Stream
+
+
 
 
 
@@ -17,7 +36,16 @@ class sign_in extends StatelessWidget {
     );
   }
 }
+class GoogleAuthClient extends http.BaseClient {
+  final Map<String, String> _headers;
+  final http.Client _client = new http.Client();
 
+  GoogleAuthClient(this._headers);
+
+  Future<http.StreamedResponse> send(http.BaseRequest request) {
+    return _client.send(request..headers.addAll(_headers));
+  }
+}
 
 
 class HomePage extends StatefulWidget {
@@ -36,6 +64,51 @@ class _HomePageState extends State<HomePage> {
   TextEditingController _storeTag = TextEditingController(); //店家標籤
   TextEditingController _latitudeAndLongitude  = TextEditingController(); //店家經緯度
   TextEditingController _menuLink  = TextEditingController(); //菜單連結
+
+  Future<void> _incrementCounter() async {
+    final googleSignIn = signIn.GoogleSignIn.standard(scopes: [drive.DriveApi.driveScope]);
+    final signIn.GoogleSignInAccount? account = await googleSignIn.signIn();
+
+    if (account != null) {
+      final authHeaders = await account.authHeaders;
+
+      if (authHeaders != null) {
+        final authenticateClient = GoogleAuthClient(authHeaders);
+        final driveApi = drive.DriveApi(authenticateClient);
+
+        final folderMetadata = drive.File()
+          ..name = "flutter_menu"
+          ..mimeType = "application/vnd.google-apps.folder";
+
+        final folder = await driveApi.files.create(folderMetadata);
+
+        if (folder.id != null) {
+          // Get the temp directory of the app
+          final Directory tempDir = await getTemporaryDirectory();
+
+          // Create a new empty CSV file in the temp directory
+          final File emptyCsvFile = File('${tempDir.path}/new_data.csv');
+          await emptyCsvFile.writeAsString('');
+
+          final csvFileMetadata = drive.File()
+            ..name = "new_data.csv"
+            ..parents = [folder.id!];
+
+          final drive.Media fileContent = new drive.Media(emptyCsvFile.openRead(), emptyCsvFile.lengthSync());
+          await driveApi.files.create(csvFileMetadata, uploadMedia: fileContent);
+
+          final permission = drive.Permission()
+            ..type = "anyone"
+            ..role = "reader";
+
+          await driveApi.permissions.create(permission, folder.id!);
+
+          final folderUrl = "https://drive.google.com/drive/folders/${folder.id}";
+          _menuLink.text = folder.id!;
+        }
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -143,13 +216,12 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ),
                     SizedBox(width: 10), // Add spacing between text and input field
-                    Expanded(
-                      child: TextField(
-                        controller: _storeWallet,
-                        decoration: InputDecoration(
-                          border: OutlineInputBorder(),
-                        ),
-                      ),
+                    ElevatedButton(
+                      onPressed: () async {
+                        //todo 使用API抓
+                        //_storeWallet
+                      },
+                      child: Text("取得錢包"),
                     ),
                   ],
                 ),
@@ -169,6 +241,7 @@ class _HomePageState extends State<HomePage> {
                       child: TextField(
                         controller: _storeTag,
                         decoration: InputDecoration(
+                          labelText: "每一項請用空格隔開",
                           border: OutlineInputBorder(),
                         ),
                       ),
@@ -177,8 +250,14 @@ class _HomePageState extends State<HomePage> {
                 ),
                 ElevatedButton(
                   onPressed: () async {
+                    _incrementCounter();
+                  },
+                  child: Text("連接雲端帳號"),
+                ),
+                ElevatedButton(
+                  onPressed: () async {
                     print(_storeName);
-                    print(_storeAddress);
+                    print(_menuLink);
                   },
                   child: Text("送出 "),
                 ),
