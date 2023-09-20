@@ -1,21 +1,12 @@
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:csv/csv.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:io';
-import 'dart:typed_data';
-import 'package:file_picker/file_picker.dart';
 import 'package:googleapis/drive/v3.dart' as drive;
 import 'package:google_sign_in/google_sign_in.dart' as signIn;
 import 'package:http/http.dart' as http;
-import 'package:googleapis_auth/googleapis_auth.dart' as auth;
-import 'package:googleapis/drive/v3.dart' show Media;
-import 'package:file_picker/file_picker.dart';
-import 'package:googleapis_auth/auth_io.dart';
-import 'dart:convert'; // for utf8
 import 'dart:async'; // for Stream
+import 'package:geocoding/geocoding.dart';
 
 
 
@@ -62,9 +53,29 @@ class _HomePageState extends State<HomePage> {
   TextEditingController _storePhone  = TextEditingController(); //店家電話
   TextEditingController _storeWallet  = TextEditingController(); //店家錢包
   TextEditingController _storeTag = TextEditingController(); //店家標籤
-  TextEditingController _latitudeAndLongitude  = TextEditingController(); //店家經緯度
+  //TextEditingController _latitudeAndLongitude  = TextEditingController(); //店家經緯度
   TextEditingController _menuLink  = TextEditingController(); //菜單連結
+  Map<String, double> _latitudeAndLongitude = {
+    "latitude": 0.0,
+    "longitude": 0.0,
+  };
 
+  Future<void> getCoordinates() async {
+    String address = _storeAddress.text; // 獲取地址
+    try {
+      List<Location> locations = await locationFromAddress(address);
+      if (locations != null && locations.length > 0) {
+        Location location = locations.first;
+        _latitudeAndLongitude["latitude"] = location.latitude;
+        _latitudeAndLongitude["longitude"] = location.longitude;
+        print('Latitude: ${location.latitude}, Longitude: ${location.longitude}');
+      } else {
+        print('No location found for this address.');
+      }
+    } catch (e) {
+      print('Error: ${e.toString()}');
+    }
+  }
   Future<void> _incrementCounter() async {
     final googleSignIn = signIn.GoogleSignIn.standard(scopes: [drive.DriveApi.driveScope]);
     final signIn.GoogleSignInAccount? account = await googleSignIn.signIn();
@@ -273,8 +284,14 @@ class _HomePageState extends State<HomePage> {
                 ),
                 ElevatedButton(
                   onPressed: () async {
-                    print(_storeName);
-                    print(_menuLink);
+                    await getCoordinates();
+                    print(_storeName.text); //店家地址
+                    print(_storeAddress.text); //店家名稱
+                    print(_storePhone.text); //店家電話
+                    print(_storeWallet.text); //店家錢包
+                    print(_storeTag.text); //店家標籤
+                    print(_latitudeAndLongitude);  //店家經緯度
+                    print(_menuLink.text); //菜單連結
                   },
                   child: Text("送出 "),
                 ),

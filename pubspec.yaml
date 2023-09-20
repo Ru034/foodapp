@@ -37,9 +37,8 @@ dependencies:
   googleapis: any
   google_sign_in: any
   googleapis_auth: 1.4.1
+  geocoding:
 
-  #googleapis_auth_oauth2:
-  #googleapis_drive:
 
 
 
