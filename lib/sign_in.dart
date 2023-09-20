@@ -53,22 +53,25 @@ class _HomePageState extends State<HomePage> {
   TextEditingController _storePhone  = TextEditingController(); //店家電話
   TextEditingController _storeWallet  = TextEditingController(); //店家錢包
   TextEditingController _storeTag = TextEditingController(); //店家標籤
-  //TextEditingController _latitudeAndLongitude  = TextEditingController(); //店家經緯度
+  TextEditingController _latitudeAndLongitude  = TextEditingController(); //店家經緯度
   TextEditingController _menuLink  = TextEditingController(); //菜單連結
-  Map<String, double> _latitudeAndLongitude = {
+  Map<String, double> _latitudeAndLongitude_no = {
     "latitude": 0.0,
     "longitude": 0.0,
   };
 
   Future<void> getCoordinates() async {
-    String address = _storeAddress.text; // 獲取地址
+    String address = _storeAddress.text; // Get the address
     try {
       List<Location> locations = await locationFromAddress(address);
       if (locations != null && locations.length > 0) {
         Location location = locations.first;
-        _latitudeAndLongitude["latitude"] = location.latitude;
-        _latitudeAndLongitude["longitude"] = location.longitude;
+        _latitudeAndLongitude_no["latitude"] = location.latitude;
+        _latitudeAndLongitude_no["longitude"] = location.longitude;
         print('Latitude: ${location.latitude}, Longitude: ${location.longitude}');
+        setState(() {
+          _latitudeAndLongitude.text = "${_latitudeAndLongitude_no['latitude']} ${_latitudeAndLongitude_no['longitude']}";
+        });
       } else {
         print('No location found for this address.');
       }
@@ -290,7 +293,7 @@ class _HomePageState extends State<HomePage> {
                     print(_storePhone.text); //店家電話
                     print(_storeWallet.text); //店家錢包
                     print(_storeTag.text); //店家標籤
-                    print(_latitudeAndLongitude);  //店家經緯度
+                    print(_latitudeAndLongitude.text);  //店家經緯度
                     print(_menuLink.text); //菜單連結
                   },
                   child: Text("送出 "),
