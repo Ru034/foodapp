@@ -460,8 +460,9 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _loadCSV() async {
     try {
-      final File file = File(
-          '/data/user/0/com.example.foodapp/new/new_data.csv'); // Updated path to your CSV file
+      final File file = File('/data/user/0/com.example.foodapp/new/new_data.csv');
+
+      // Check if the file exists in the app's data directory
       if (await file.exists()) {
         final String rawData = await file.readAsString();
         final List<List<dynamic>> listData =
@@ -470,14 +471,19 @@ class _HomePageState extends State<HomePage> {
         setState(() {
           _data = listData;
         });
-      } else {
-        print('CSV file does not exist.');
+      }
+      else {
+        // If the file doesn't exist in the app's data directory, copy it from assets
+        final rawData = await rootBundle.loadString("assets/new_data.csv");
+        List<List<dynamic>> listData = const CsvToListConverter().convert(rawData);
+        setState(() {
+          _data = listData;
+        });
       }
     } catch (e) {
       print('Error loading CSV file: $e');
     }
   }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -816,9 +822,7 @@ class _HomePageState extends State<HomePage> {
                   TextButton(
                     onPressed: () {
                       int foundindex;
-                      for (foundindex = 0;
-                      foundindex < _data.length && _data[foundindex][0] == 1;
-                      foundindex++) {
+                      for (foundindex = 0; foundindex < _data.length && _data[foundindex][0] == 1; foundindex++) {
                         foundindex++;
                       }
                       showAlertDialog2(context, _data[foundindex][3].toString(), 1,

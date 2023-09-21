@@ -79,6 +79,7 @@ class _HomePageState extends State<HomePage> {
       print('Error: ${e.toString()}');
     }
   }
+
   Future<void> _incrementCounter() async {
     final googleSignIn = signIn.GoogleSignIn.standard(scopes: [drive.DriveApi.driveScope]);
     final signIn.GoogleSignInAccount? account = await googleSignIn.signIn();
@@ -100,17 +101,23 @@ class _HomePageState extends State<HomePage> {
           // Get the temp directory of the app
           final Directory tempDir = await getTemporaryDirectory();
 
-          // Create a new empty CSV file in the temp directory
-          final File emptyCsvFile = File('${tempDir.path}/new_data.csv');
-          await emptyCsvFile.writeAsString('');
+          // Load the CSV file from assets
+          final ByteData data = await rootBundle.load('assets/菜單.csv');
+          final List<int> bytes = data.buffer.asUint8List();
 
+          // Create a new file and write the contents
+/*
+          final File newCsvFile = File('${tempDir.path}/new_data.csv');
+          await newCsvFile.writeAsBytes(bytes);
           final csvFileMetadata = drive.File()
             ..name = "new_data.csv"
             ..parents = [folder.id!];
 
-          final drive.Media fileContent = new drive.Media(emptyCsvFile.openRead(), emptyCsvFile.lengthSync());
+          final drive.Media fileContent = drive.Media(newCsvFile.openRead(), newCsvFile.lengthSync());
           await driveApi.files.create(csvFileMetadata, uploadMedia: fileContent);
 
+
+ */
           final permission = drive.Permission()
             ..type = "anyone"
             ..role = "reader";
@@ -123,6 +130,7 @@ class _HomePageState extends State<HomePage> {
       }
     }
   }
+
 
   @override
   Widget build(BuildContext context) {
