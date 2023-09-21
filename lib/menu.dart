@@ -459,6 +459,7 @@ class _HomePageState extends State<HomePage> {
 */
 
   Future<void> _loadCSV() async {
+    await _download();
     try {
       final File file = File('/data/user/0/com.example.foodapp/new/new_data.csv');
 
