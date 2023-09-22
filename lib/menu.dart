@@ -273,8 +273,9 @@ class _HomePageState extends State<HomePage> {
       if (authHeaders != null) {
         final authenticateClient = GoogleAuthClient(authHeaders);
         final driveApi = drive.DriveApi(authenticateClient);
-        final googleDriveFolderId ='1cOKclriMA8y4dnvbqgRr3szq8NZUiYEX'; //Todo 解決取得google drive裡檔案id的問題
+        final googleDriveFolderId ='11JVW4Y1LkucKj3g9ATvspEBfcgoBibL3'; //Todo 解決取得google drive裡檔案id的問題
         //https://drive.google.com/drive/folders/1cOKclriMA8y4dnvbqgRr3szq8NZUiYEX?usp=drive_link
+        //11JVW4Y1LkucKj3g9ATvspEBfcgoBibL3
         final localFolderPath = '/data/user/0/com.example.foodapp/new';
         final directory = Directory(localFolderPath);
         if (directory.existsSync()) {

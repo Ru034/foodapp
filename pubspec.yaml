@@ -74,6 +74,8 @@ flutter:
   assets:
     - assets/菜單.csv
     - assets/M1.csv
+    - assets/M2.csv
+    - assets/M3.csv
     - assets/new_data.csv
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
