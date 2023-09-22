@@ -49,6 +49,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   //HomePage 的狀態類別，用於管理狀態變化
   TextEditingController _storeName   = TextEditingController(); //店家名稱
+  TextEditingController _password = TextEditingController(); //密碼
   TextEditingController _storeAddress  = TextEditingController(); //店家地址
   TextEditingController _storePhone  = TextEditingController(); //店家電話
   TextEditingController _storeWallet  = TextEditingController(); //店家錢包
@@ -185,6 +186,28 @@ class _HomePageState extends State<HomePage> {
                     const Padding(
                       padding: EdgeInsets.only(top: 2, left: 20.0, bottom: 15),
                       child: Text(
+                        "密碼:",
+                        style: TextStyle(
+                          fontSize: 18,
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 10), // Add spacing between text and input field
+                    Expanded(
+                      child: TextField(
+                        controller: _password,
+                        decoration: InputDecoration(
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                Row(
+                  children: [
+                    const Padding(
+                      padding: EdgeInsets.only(top: 2, left: 20.0, bottom: 15),
+                      child: Text(
                         "地址:",
                         style: TextStyle(
                           fontSize: 18,
@@ -296,8 +319,9 @@ class _HomePageState extends State<HomePage> {
                 ElevatedButton(
                   onPressed: () async {
                     await getCoordinates();
-                    print(_storeName.text); //店家地址
-                    print(_storeAddress.text); //店家名稱
+                    print(_storeName.text); //店家名稱
+                    print(_password.text); //店家密碼
+                    print(_menuLink.text); //菜單連結
                     print(_storePhone.text); //店家電話
                     print(_storeWallet.text); //店家錢包
                     print(_storeTag.text); //店家標籤
