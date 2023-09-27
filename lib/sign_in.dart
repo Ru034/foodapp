@@ -7,7 +7,9 @@ import 'package:google_sign_in/google_sign_in.dart' as signIn;
 import 'package:http/http.dart' as http;
 import 'dart:async'; // for Stream
 import 'package:geocoding/geocoding.dart';
-
+import 'dart:convert';
+import 'package:http_parser/http_parser.dart' as http_parser;
+import 'dart:convert';
 
 
 
@@ -48,30 +50,105 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   //HomePage 的狀態類別，用於管理狀態變化
-  TextEditingController _storeName   = TextEditingController(); //店家名稱
-  TextEditingController _password = TextEditingController(); //密碼
-  TextEditingController _storeAddress  = TextEditingController(); //店家地址
-  TextEditingController _storePhone  = TextEditingController(); //店家電話
-  TextEditingController _storeWallet  = TextEditingController(); //店家錢包
-  TextEditingController _storeTag = TextEditingController(); //店家標籤
-  TextEditingController _latitudeAndLongitude  = TextEditingController(); //店家經緯度
-  TextEditingController _menuLink  = TextEditingController(); //菜單連結
-  Map<String, double> _latitudeAndLongitude_no = {
+  TextEditingController storeName   = TextEditingController(); //店家名稱
+  TextEditingController password = TextEditingController(); //密碼
+  TextEditingController storeAddress  = TextEditingController(); //店家地址
+  TextEditingController storePhone  = TextEditingController(); //店家電話
+  String account  = ""; //店家錢包
+  TextEditingController storeTag = TextEditingController(); //店家標籤
+  TextEditingController latitudeAndLongitude  = TextEditingController(); //店家經緯度
+  TextEditingController menuLink  = TextEditingController(); //菜單連結
+  late String storeWallet  ; //店家錢包
+  late String contractAddress  ; //上傳合約
+  Map<String, double> latitudeAndLongitude_no = {
     "latitude": 0.0,
     "longitude": 0.0,
   };
 
+
+  Future<http.Response> createAlbum1(String title, TextEditingController passwordController) {
+    final Map<String, String> data = {
+      'title': title,
+      'password': passwordController.text,
+    };
+    final headers = {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    };
+    final body = Uri(queryParameters: data).query;
+    return http.post(
+      Uri.parse('http://192.168.1.102:15000/createAccount'),
+      headers: headers,
+      body: body,
+    );
+  }
+  Future<void> getaccout() async {
+    try {
+      final response = await createAlbum1("My Album Title", password);
+      if (response.statusCode == 200) {
+        print("Response data: ${response.body}");
+        // 將回應的值設置到 _storeWallet 控制器中
+        account = response.body;
+      } else {
+        // 請求失敗，處理錯誤
+        print("Request failed with status: ${response.statusCode}");
+      }
+    } catch (error) {
+      // 處理錯誤
+      print("Error: $error");
+    }
+  }
+
+  Future<http.Response> createAlbum2( TextEditingController storeNameController, TextEditingController storeAddressController, TextEditingController storePhoneController,String storeWalletController
+  ,TextEditingController storeTagController ,TextEditingController latitudeAndLongitudeController,TextEditingController menuLinkController) {
+    final Map<String, String> data = {
+      'storeName' : storeNameController.text,
+      'storeAddress' : storeAddressController.text,
+      'storePhone' : storePhoneController.text,
+      'storeWallet' : storeWalletController,
+      'storeTag' : storeTagController.text,
+      'latitudeAndLongitude' : latitudeAndLongitudeController.text,
+      'menuLink' : menuLinkController.text,
+    };
+    print(data);
+    final headers = {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    };
+    final body = Uri(queryParameters: data).query;
+    return http.post(
+      Uri.parse('http://192.168.1.102:15000/deploy'),
+      headers: headers,
+      body: body,
+    );
+  }
+  Future<void> register() async { //todo
+    try {
+      final response = await createAlbum2( storeName,storeAddress,storePhone,storeWallet,storeTag,latitudeAndLongitude,menuLink);
+      if (response.statusCode == 200) {
+        print("Response data: ${response.body}");
+        // 將回應的值設置到 _storeWallet 控制器中
+        contractAddress = response.body;
+      } else {
+        // 請求失敗，處理錯誤
+        print("Request failed with status: ${response.statusCode}");
+      }
+    } catch (error) {
+      // 處理錯誤
+      print("Error: $error");
+    }
+  }
+
+
   Future<void> getCoordinates() async {
-    String address = _storeAddress.text; // Get the address
+    String address = storeAddress.text; // Get the address
     try {
       List<Location> locations = await locationFromAddress(address);
       if (locations != null && locations.length > 0) {
         Location location = locations.first;
-        _latitudeAndLongitude_no["latitude"] = location.latitude;
-        _latitudeAndLongitude_no["longitude"] = location.longitude;
+        latitudeAndLongitude_no["latitude"] = location.latitude;
+        latitudeAndLongitude_no["longitude"] = location.longitude;
         print('Latitude: ${location.latitude}, Longitude: ${location.longitude}');
         setState(() {
-          _latitudeAndLongitude.text = "${_latitudeAndLongitude_no['latitude']} ${_latitudeAndLongitude_no['longitude']}";
+          latitudeAndLongitude.text = "${latitudeAndLongitude_no['latitude']} ${latitudeAndLongitude_no['longitude']}";
         });
       } else {
         print('No location found for this address.');
@@ -126,7 +203,7 @@ class _HomePageState extends State<HomePage> {
           await driveApi.permissions.create(permission, folder.id!);
 
           final folderUrl = "https://drive.google.com/drive/folders/${folder.id}";
-          _menuLink.text = folder.id!;
+          menuLink.text = folder.id!;
         }
       }
     }
@@ -172,7 +249,7 @@ class _HomePageState extends State<HomePage> {
                     SizedBox(width: 10), // Add spacing between text and input field
                     Expanded(
                       child: TextField(
-                        controller: _storeName,
+                        controller: storeName,
                         decoration: InputDecoration(
                           border: OutlineInputBorder(),
                         ),
@@ -180,29 +257,7 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ],
                 ),
-                // Address
-                Row(
-                  children: [
-                    const Padding(
-                      padding: EdgeInsets.only(top: 2, left: 20.0, bottom: 15),
-                      child: Text(
-                        "密碼:",
-                        style: TextStyle(
-                          fontSize: 18,
-                        ),
-                      ),
-                    ),
-                    SizedBox(width: 10), // Add spacing between text and input field
-                    Expanded(
-                      child: TextField(
-                        controller: _password,
-                        decoration: InputDecoration(
-                          border: OutlineInputBorder(),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+                // Addres
                 Row(
                   children: [
                     const Padding(
@@ -217,7 +272,7 @@ class _HomePageState extends State<HomePage> {
                     SizedBox(width: 10), // Add spacing between text and input field
                     Expanded(
                       child: TextField(
-                        controller: _storeAddress,
+                        controller: storeAddress,
                         decoration: InputDecoration(
                           border: OutlineInputBorder(),
                         ),
@@ -240,7 +295,7 @@ class _HomePageState extends State<HomePage> {
                     SizedBox(width: 10), // Add spacing between text and input field
                     Expanded(
                       child: TextField(
-                        controller: _storePhone,
+                        controller: storePhone,
                         decoration: InputDecoration(
                           border: OutlineInputBorder(),
                         ),
@@ -254,16 +309,27 @@ class _HomePageState extends State<HomePage> {
                     const Padding(
                       padding: EdgeInsets.only(top: 2, left: 20.0, bottom: 15),
                       child: Text(
-                        "錢包:",
+                        "密碼:",
                         style: TextStyle(
                           fontSize: 18,
                         ),
                       ),
                     ),
                     SizedBox(width: 10), // Add spacing between text and input field
+                    Expanded(
+                      child: TextField(
+                        controller: password,
+                        decoration: InputDecoration(
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 10), // Add spacing between text and input field
                     ElevatedButton(
                       onPressed: () async {
-                        //todo 使用API抓
+                        await getaccout();
+                        Map<String, dynamic> data = json.decode(account);
+                        storeWallet= data["account"];
                         //_storeWallet
                       },
                       child: Text("取得錢包"),
@@ -284,7 +350,7 @@ class _HomePageState extends State<HomePage> {
                     SizedBox(width: 10), // Add spacing between text and input field
                     Expanded(
                       child: TextField(
-                        controller: _storeTag,
+                        controller: storeTag,
                         decoration: InputDecoration(
                           labelText: "每一項請用空格隔開",
                           border: OutlineInputBorder(),
@@ -319,14 +385,18 @@ class _HomePageState extends State<HomePage> {
                 ElevatedButton(
                   onPressed: () async {
                     await getCoordinates();
-                    print(_storeName.text); //店家名稱
-                    print(_password.text); //店家密碼
-                    print(_menuLink.text); //菜單連結
-                    print(_storePhone.text); //店家電話
-                    print(_storeWallet.text); //店家錢包
-                    print(_storeTag.text); //店家標籤
-                    print(_latitudeAndLongitude.text);  //店家經緯度
-                    print(_menuLink.text); //菜單連結
+
+                    print(storeName.text); //店家名稱
+                    print(password.text); //店家密碼
+                    print(menuLink.text); //菜單連結
+                    print(storePhone.text); //店家電話
+                    print(storeWallet); //店家錢包
+                    print(storeTag.text); //店家標籤
+                    print(latitudeAndLongitude.text);  //店家經緯度
+                    print(menuLink.text); //菜單連結
+                    await register();
+
+                    print (contractAddress);
                   },
                   child: Text("送出 "),
                 ),
