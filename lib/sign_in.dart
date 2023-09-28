@@ -8,11 +8,9 @@ import 'package:http/http.dart' as http;
 import 'dart:async'; // for Stream
 import 'package:geocoding/geocoding.dart';
 import 'dart:convert';
+import 'package:flutter/material.dart';
 import 'package:http_parser/http_parser.dart' as http_parser;
 import 'dart:convert';
-
-
-
 
 class sign_in extends StatelessWidget {
   const sign_in ({Key? key}) : super(key: key);
@@ -64,6 +62,60 @@ class _HomePageState extends State<HomePage> {
     "latitude": 0.0,
     "longitude": 0.0,
   };
+  Future<void> showWalletDialog(BuildContext context, String wallet) async {
+    return showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('申請成功'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Text('帳號為: $wallet'),
+                // You can add more content as needed
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text('OK'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+  // Function to show the registration dialog
+  Future<void> showRegistrationSuccessDialog(BuildContext context, String contractAddress) async {
+    return showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('註冊成功'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                //Text('Your registration is successful!'),
+                Text('位置為: $contractAddress'),
+                // You can add more content as needed
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text('OK'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
 
 
   Future<http.Response> createAlbum1(String title, TextEditingController passwordController) {
@@ -97,6 +149,7 @@ class _HomePageState extends State<HomePage> {
       print("Error: $error");
     }
   }
+
 
   Future<http.Response> createAlbum2( TextEditingController storeNameController, TextEditingController storeAddressController, TextEditingController storePhoneController,String storeWalletController
   ,TextEditingController storeTagController ,TextEditingController latitudeAndLongitudeController,TextEditingController menuLinkController) {
@@ -330,6 +383,7 @@ class _HomePageState extends State<HomePage> {
                         await getaccout();
                         Map<String, dynamic> data = json.decode(account);
                         storeWallet= data["account"];
+                        showWalletDialog(context, storeWallet);
                         //_storeWallet
                       },
                       child: Text("取得錢包"),
@@ -395,8 +449,8 @@ class _HomePageState extends State<HomePage> {
                     print(latitudeAndLongitude.text);  //店家經緯度
                     print(menuLink.text); //菜單連結
                     await register();
-
-                    print (contractAddress);
+                    print (contractAddress); //店家合約位置
+                    showRegistrationSuccessDialog(context, contractAddress);
                   },
                   child: Text("送出 "),
                 ),
