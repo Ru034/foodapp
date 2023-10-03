@@ -49,7 +49,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   //HomePage 的狀態類別，用於管理狀態變化
   TextEditingController storeName   = TextEditingController(); //店家名稱
-  TextEditingController password = TextEditingController(); //密碼
+  TextEditingController storePassword = TextEditingController(); //密碼
   TextEditingController storeAddress  = TextEditingController(); //店家地址
   TextEditingController storePhone  = TextEditingController(); //店家電話
   String account  = ""; //店家錢包
@@ -135,7 +135,7 @@ class _HomePageState extends State<HomePage> {
   }
   Future<void> getaccout() async {
     try {
-      final response = await createAlbum1("My Album Title", password);
+      final response = await createAlbum1("My Album Title", storePassword);
       if (response.statusCode == 200) {
         print("Response data: ${response.body}");
         // 將回應的值設置到 _storeWallet 控制器中
@@ -151,9 +151,10 @@ class _HomePageState extends State<HomePage> {
   }
 
 
-  Future<http.Response> createAlbum2( TextEditingController storeNameController, TextEditingController storeAddressController, TextEditingController storePhoneController,String storeWalletController
+  Future<http.Response> createAlbum2(  TextEditingController storePasswordController  ,TextEditingController storeNameController, TextEditingController storeAddressController, TextEditingController storePhoneController,String storeWalletController
   ,TextEditingController storeTagController ,TextEditingController latitudeAndLongitudeController,TextEditingController menuLinkController) {
     final Map<String, String> data = {
+      'storePassword' : storePasswordController.text,
       'storeName' : storeNameController.text,
       'storeAddress' : storeAddressController.text,
       'storePhone' : storePhoneController.text,
@@ -175,7 +176,7 @@ class _HomePageState extends State<HomePage> {
   }
   Future<void> register() async { //todo
     try {
-      final response = await createAlbum2( storeName,storeAddress,storePhone,storeWallet,storeTag,latitudeAndLongitude,menuLink);
+      final response = await createAlbum2( storePassword,storeName,storeAddress,storePhone,storeWallet,storeTag,latitudeAndLongitude,menuLink);
       if (response.statusCode == 200) {
         print("Response data: ${response.body}");
         // 將回應的值設置到 _storeWallet 控制器中
@@ -371,7 +372,7 @@ class _HomePageState extends State<HomePage> {
                     SizedBox(width: 10), // Add spacing between text and input field
                     Expanded(
                       child: TextField(
-                        controller: password,
+                        controller: storePassword,
                         decoration: InputDecoration(
                           border: OutlineInputBorder(),
                         ),
@@ -441,7 +442,7 @@ class _HomePageState extends State<HomePage> {
                     await getCoordinates();
 
                     print(storeName.text); //店家名稱
-                    print(password.text); //店家密碼
+                    print(storePassword.text); //店家密碼
                     print(menuLink.text); //菜單連結
                     print(storePhone.text); //店家電話
                     print(storeWallet); //店家錢包
