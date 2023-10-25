@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'menu.dart';
-import 'sign_in.dart';
-import 'log_in.dart';
 /*
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -67,9 +65,7 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   int index = 0;//選擇NavigationBar的項目
   final screens = [
-    const log_in(),
     const  menu(),
-    const sign_in(),
   ];//傳送至頁面的陣列
 
   @override
@@ -93,21 +89,10 @@ class _MyHomePageState extends State<MyHomePage> {
           onDestinationSelected: (index) => setState(() => this.index = index),//選定項目的結果
           destinations: const [
             NavigationDestination(
-              icon: Icon(Icons.how_to_reg_rounded),
-              selectedIcon: Icon(Icons.how_to_reg_rounded),
-              label: '登入',
-            ),
-            NavigationDestination(
               icon: Icon(Icons.restaurant_menu),
               selectedIcon: Icon(Icons.restaurant_menu),
-              label: '更改菜單',
+              label: '上架菜單',
             ),
-            NavigationDestination(
-              icon: Icon(Icons.person_outlined),
-              selectedIcon: Icon(Icons.person_outlined),
-              label: '註冊',
-            ),
-
           ],
         ),
       ),
