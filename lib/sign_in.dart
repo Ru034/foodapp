@@ -11,6 +11,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http_parser/http_parser.dart' as http_parser;
 import 'dart:convert';
+import 'main.dart';
+import 'main2.dart';
 
 class sign_in extends StatelessWidget {
   const sign_in ({Key? key}) : super(key: key);
@@ -278,6 +280,12 @@ class _HomePageState extends State<HomePage> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                ElevatedButton(
+                  onPressed: () async {
+                    Navigator.push(context , MaterialPageRoute(builder: (context) => MyApp()));
+                  },
+                  child: Text("回登入頁面"),
+                ),
                 const Padding(
                   padding: EdgeInsets.all(15.0),
                   child: Text(
