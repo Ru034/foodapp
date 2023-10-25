@@ -35,10 +35,13 @@ class GoogleAuthClient extends http.BaseClient {
     return _client.send(request..headers.addAll(_headers));
   }
 }
+/*
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   runApp(const menu());
 }
+
+ */
 class menu extends StatelessWidget {
   const menu({Key? key}) : super(key: key);
 
@@ -124,12 +127,12 @@ class _HomePageState extends State<HomePage> {
       final file = File('${directory.path}/new_data.csv');
 
       // Write the CSV content to the new directory
-      await file.writeAsString(csvContent);
+    await file.writeAsString(csvContent);
 
-      print('CSV data saved to new directory: ${file.path}');
-    } catch (e) {
-      print('Error saving CSV data: $e');
-    }
+    print('CSV data saved to new directory: ${file.path}');
+  } catch (e) {
+  print('Error saving CSV data: $e');
+  }
   }
 
   Future<void> _pickImage(int index) async {
@@ -273,7 +276,7 @@ class _HomePageState extends State<HomePage> {
       if (authHeaders != null) {
         final authenticateClient = GoogleAuthClient(authHeaders);
         final driveApi = drive.DriveApi(authenticateClient);
-        final googleDriveFolderId ='11JVW4Y1LkucKj3g9ATvspEBfcgoBibL3'; //Todo 解決取得google drive裡檔案id的問題
+        final googleDriveFolderId ='1cOKclriMA8y4dnvbqgRr3szq8NZUiYEX'; //Todo 解決取得google drive裡檔案id的問題
         //https://drive.google.com/drive/folders/1cOKclriMA8y4dnvbqgRr3szq8NZUiYEX?usp=drive_link
         //11JVW4Y1LkucKj3g9ATvspEBfcgoBibL3
         final localFolderPath = '/data/user/0/com.example.foodapp/new';
