@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'sign_in.dart';
 import 'log_in.dart';
+import 'main2.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
