@@ -152,7 +152,7 @@ class _HomePageState extends State<HomePage> {
 
 
   Future<http.Response> createAlbum2(  TextEditingController storePasswordController  ,TextEditingController storeNameController, TextEditingController storeAddressController, TextEditingController storePhoneController,String storeWalletController
-      ,TextEditingController storeTagController ,TextEditingController latitudeAndLongitudeController,TextEditingController menuLinkController) {
+  ,TextEditingController storeTagController ,TextEditingController latitudeAndLongitudeController,TextEditingController menuLinkController) {
     final Map<String, String> data = {
       'storePassword' : storePasswordController.text,
       'storeName' : storeNameController.text,

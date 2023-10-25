@@ -10,6 +10,7 @@ class log_in extends StatefulWidget {
 class _LoginPageState extends State<log_in> {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _gpsController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -48,6 +49,14 @@ class _LoginPageState extends State<log_in> {
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  SizedBox(height: 20),
+                  TextFormField(
+                    controller: _gpsController,
+                    decoration: InputDecoration(
+                      labelText: '合約位置',
+                      prefixIcon: Icon(Icons.gps_fixed),
                     ),
                   ),
                   SizedBox(height: 20),
