@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'menu.dart';
-
+import 'sign_in.dart';
+import 'log_in.dart';
 
 bool isDarkMode = false;
 

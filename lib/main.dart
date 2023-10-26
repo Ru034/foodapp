@@ -35,9 +35,9 @@ class HomePage extends StatefulWidget {
 
 
 class _HomePageState extends State<HomePage> {
-  final TextEditingController _usernameController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _gpsController = TextEditingController();
+  final TextEditingController storeWallet = TextEditingController();
+  final TextEditingController storePassword = TextEditingController();
+  final TextEditingController contractAddress = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -80,7 +80,7 @@ class _HomePageState extends State<HomePage> {
                   ),
                   SizedBox(height: 20),
                   TextFormField(
-                    controller: _gpsController,
+                    controller: contractAddress,
                     decoration: InputDecoration(
                       labelText: '合約位置',
                       prefixIcon: Icon(Icons.gps_fixed),
@@ -88,7 +88,7 @@ class _HomePageState extends State<HomePage> {
                   ),
                   SizedBox(height: 20),
                   TextFormField(
-                    controller: _usernameController,
+                    controller: storeWallet,
                     decoration: InputDecoration(
                       labelText: '錢包/帳號',
                       prefixIcon: Icon(Icons.person),
@@ -96,7 +96,7 @@ class _HomePageState extends State<HomePage> {
                   ),
                   SizedBox(height: 10),
                   TextFormField(
-                    controller: _passwordController,
+                    controller: storePassword,
                     decoration: InputDecoration(
                       labelText: '密碼',
                       prefixIcon: Icon(Icons.lock),
