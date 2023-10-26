@@ -7,8 +7,9 @@ import 'log_in.dart';
 bool isDarkMode = false;
 
 class main2 extends StatelessWidget {
-  const main2({Key? key}) : super(key: key);
-
+  final String contractAddress;
+  const main2 ({Key? key,  required this.contractAddress}) : super(key: key);
+  //main2(this.contractAddress);
 
   @override
   Widget build(BuildContext context) {
@@ -16,7 +17,6 @@ class main2 extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'MyApp',
       theme: ThemeData(
-
         colorSchemeSeed: Colors.brown,
         brightness: Brightness.light,
         useMaterial3: true,
@@ -26,14 +26,14 @@ class main2 extends StatelessWidget {
         brightness: Brightness.dark,
         useMaterial3: true,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: MyHomePage(contractAddress),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({Key? key, required this.title}) : super(key: key);
-  final String title;
+  final String contractAddress;
+  const MyHomePage(this.contractAddress, {super.key});  //widget.contractAddress
 
   @override
   State<MyHomePage> createState() => _MyHomePageState();
@@ -53,6 +53,7 @@ class _MyHomePageState extends State<MyHomePage> {
         index: index,
         children: screens,
       ),
+
       bottomNavigationBar: NavigationBarTheme(
         data: NavigationBarThemeData(
           labelTextStyle: MaterialStateProperty.all(

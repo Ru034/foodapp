@@ -106,13 +106,16 @@ class _HomePageState extends State<HomePage> {
                   SizedBox(height: 20),
                   ElevatedButton(
                     onPressed: () {
-                      Navigator.push(context , MaterialPageRoute(builder: (context) =>main2()));
+
+                      Navigator.push(context , MaterialPageRoute(builder: (context) =>main2(contractAddress: contractAddress.text,)));
                     },
                     child: Text('登入'),
                   ),
                   ElevatedButton(
                     onPressed: () {
+                      print("contractAddress.text");
                       Navigator.push(context , MaterialPageRoute(builder: (context) =>sign_in()));
+                      //Navigator.push(context , MaterialPageRoute(builder: (context) =>sign_in()));
                     },
                     child: Text('註冊帳號'),
                   ),
