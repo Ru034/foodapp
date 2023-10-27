@@ -58,7 +58,7 @@ class _HomePageState extends State<HomePage> {
   TextEditingController storeTag = TextEditingController(); //店家標籤
   TextEditingController latitudeAndLongitude  = TextEditingController(); //店家經緯度
   TextEditingController menuLink  = TextEditingController(); //菜單連結
-  late String storeWallet  ; //店家錢包
+  String storeWallet  =""; //店家錢包
   late String contractAddress  ; //上傳合約
   Map<String, double> latitudeAndLongitude_no = {
     "latitude": 0.0,
@@ -447,19 +447,42 @@ class _HomePageState extends State<HomePage> {
                 ),
                 ElevatedButton(
                   onPressed: () async {
-                    await getCoordinates();
 
-                    print(storeName.text); //店家名稱
-                    print(storePassword.text); //店家密碼
-                    print(menuLink.text); //菜單連結
-                    print(storePhone.text); //店家電話
-                    print(storeWallet); //店家錢包
-                    print(storeTag.text); //店家標籤
-                    print(latitudeAndLongitude.text);  //店家經緯度
-                    print(menuLink.text); //菜單連結
-                    await register();
-                    print (contractAddress); //店家合約位置
-                    showRegistrationSuccessDialog(context, contractAddress);
+                    if(storeWallet!="") {
+                      await getCoordinates();
+                      print(storeName.text); //店家名稱
+                      print(storePassword.text); //店家密碼
+                      print(menuLink.text); //菜單連結
+                      print(storePhone.text); //店家電話
+                      print(storeWallet); //店家錢包
+                      print(storeTag.text); //店家標籤
+                      print(latitudeAndLongitude.text);  //店家經緯度
+                      print(menuLink.text); //菜單連結
+                      await register();
+                      //print (contractAddress); //店家合約位置ㄈ
+
+                      Map<String, dynamic> contractAddressdata = json.decode(contractAddress as String);
+                      String contractAddress2 = contractAddressdata['contractAddress'];
+                      bool addContractStatus = contractAddressdata['addContractStatus'];
+                      print('contractAddress=$contractAddress2');
+                      print('addContractStatus=$addContractStatus');
+                      Navigator.push(context, MaterialPageRoute(
+                          builder: (context) =>
+                              main2(contractAddress: contractAddress2,)));
+                      //showRegistrationSuccessDialog(context, contractAddress2);
+                    }
+                    else {
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            title: Text("註冊失敗"),
+                            content: Text("請記得申請錢包"),
+                          );
+                        },
+                      );
+
+                    }
                   },
                   child: Text("送出 "),
                 ),
@@ -469,3 +492,4 @@ class _HomePageState extends State<HomePage> {
         ));
   }
 }
+

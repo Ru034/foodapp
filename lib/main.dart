@@ -1,8 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:googleapis/drive/v3.dart' as drive;
+import 'package:google_sign_in/google_sign_in.dart' as signIn;
+import 'package:googleapis/shared.dart';
+import 'dart:io';
 import 'sign_in.dart';
 import 'log_in.dart';
 import 'main2.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert'; // for utf8
+import 'dart:async'; // for Stream
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -38,6 +45,37 @@ class _HomePageState extends State<HomePage> {
   final TextEditingController storeWallet = TextEditingController();
   final TextEditingController storePassword = TextEditingController();
   final TextEditingController contractAddress = TextEditingController();
+  String result = "";
+
+  Future<http.Response> Checkacc(TextEditingController storeWallet, TextEditingController storePassword, TextEditingController storeAddress,) async {
+    final Map<String, String> data = {
+      'storeWallet': storeWallet.text,
+      'storePassword': storePassword.text,
+      'contractAddress': storeAddress.text,
+    };
+    print(data);
+    final headers = {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    };
+    final body = Uri(queryParameters: data).query;
+    final response = await http.post(
+      Uri.parse('http://192.168.1.102:15000/signUp/check'),
+      headers: headers,
+      body: body,
+    );
+
+    // 解析伺服器回應
+    if (response.statusCode == 200) {
+      final responseBody = response.body;
+      final responseMap = json.decode(responseBody);
+      if (responseMap['result'] != null) {
+        result = responseMap['result'].toString();
+      }
+    } else {
+      result = ""; // 處理錯誤情況，將 result 設為空字串或其他值
+    }
+    return response;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -83,7 +121,7 @@ class _HomePageState extends State<HomePage> {
                     controller: contractAddress,
                     decoration: InputDecoration(
                       labelText: '合約位置',
-                      prefixIcon: Icon(Icons.gps_fixed),
+                      prefixIcon: Icon(Icons.edit_location_sharp),
                     ),
                   ),
                   SizedBox(height: 20),
@@ -105,9 +143,24 @@ class _HomePageState extends State<HomePage> {
                   ),
                   SizedBox(height: 20),
                   ElevatedButton(
-                    onPressed: () {
+                    onPressed: () async{
 
-                      Navigator.push(context , MaterialPageRoute(builder: (context) =>main2(contractAddress: contractAddress.text,)));
+                      await  Checkacc(storeWallet,storePassword ,contractAddress);
+                      print(result);
+                      if(result=="true") {
+                        Navigator.push(context , MaterialPageRoute(builder: (context) =>main2(contractAddress: contractAddress.text,)));
+                      }
+                      else {
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return AlertDialog(
+                              title: Text("登入失敗"),
+                              content: Text("請檢查輸入是否正確"),
+                            );
+                          },
+                        );
+                      }
                     },
                     child: Text('登入'),
                   ),
