@@ -186,9 +186,10 @@ class _HomePageState extends State<HomePage> {
 
                       FoodSql shopdata = FoodSql("shopdata","storeWallet TEXT, contractAddress TEXT"); //建立資料庫
                       await shopdata.initializeDatabase(); //初始化資料庫 並且創建資料庫
-                      await shopdata.insertsql("shopdata",{"storeWallet": storeWallet.text,"contractAddress":contractAddress.text});
-                      //await shopdata.insertsql({"storeWallet": ,"contractAddress":"123"});
-                      print(await shopdata.querytsql());
+                      //await shopdata.insertsql("shopdata",{"storeWallet": storeWallet.text,"contractAddress":contractAddress.text}); //插入資料
+                      await shopdata.deletesql("shopdata","contractAddress",contractAddress.text); //刪除資料
+
+                      print(await shopdata.querytsql("shopdata"));
 
                     },
                     child: Text('註冊帳號'),

@@ -41,10 +41,19 @@ class FoodSql {
         mapvalue,
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
-    }
+  }
+  Future<void> deletesql(String db,String deleteparameter,String deletevalute) async { //刪除資料
+    print(deleteparameter) ;
+    print(deletevalute) ;
+    await database.delete(
+      db, // 确保表名正确
+      where: '$deleteparameter = ?',
+      whereArgs: [deletevalute],
+    );
+  }
 
-  dynamic querytsql() async {   //查詢所有資料
-    var maps = await database.query('shopdata');
+  dynamic querytsql(String db) async {   //查詢所有資料
+    var maps = await database.query(db);
     return maps;
   }
 
