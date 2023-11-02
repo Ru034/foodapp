@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:html';
 import 'package:flutter/widgets.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
@@ -38,14 +37,7 @@ class FoodSql {
     _initializeDatabase();
   }
 
-  Future<void> insertFood(String foodvalue) async {
 
-    await database.insert(
-      this.table_name,
-      foodsql.toMap(),
-      conflictAlgorithm: ConflictAlgorithm.replace
-    );
-  }
 }
 
 /*
