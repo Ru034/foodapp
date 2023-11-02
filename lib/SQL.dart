@@ -46,7 +46,7 @@ class FoodSql {
       where: '$updateparameter = ?',
       whereArgs: [updatevalute],
     );
-    //await shopdata.updatesql("shopdata", "contractAddress", contractAddress.text, "storeWallet", storeWallet.text);
+    //await shopdata.updatesql("shopdata", "contractAddress", contractAddress.text, "storeWallet", storeWallet.text); //更新資料
   }
 
 
