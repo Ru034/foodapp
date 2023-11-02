@@ -21,20 +21,31 @@ import 'package:sqflite/sqflite.dart';
 class FoodSql {
   late String table_name;
   late String createsql_value;
-  late var database;
-  _initializeDatabase() async {
-      database = openDatabase(
-      join(await getDatabasesPath(), 'foodsql.db'),
+  late Database database;
 
+
+  Future<void> initializeDatabase() async { //初始化資料庫  並且創建資料庫
+    database =await openDatabase(
+      join(await getDatabasesPath(), 'foodsql.db'),
       onCreate: (db, version) {return db.execute('CREATE TABLE $table_name($createsql_value)');},
       version: 1,
     ) ;
   }
-  FoodSql(String table_name,String createsql_value) {
-    this.createsql_value = createsql_value;
-    this.table_name = table_name;
-    //print('CREATE TABLE $table_name($createsql_value)');
-    _initializeDatabase();
+  FoodSql(this.table_name,this.createsql_value) ; //建構子
+
+
+
+  Future<void> insertsql(String db,Map<String, dynamic> mapvalue) async { //插入資料
+      await database.insert(
+        db, // 确保表名正确
+        mapvalue,
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+    }
+
+  dynamic querytsql() async {   //查詢所有資料
+    var maps = await database.query('shopdata');
+    return maps;
   }
 
 

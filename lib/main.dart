@@ -175,7 +175,7 @@ class _HomePageState extends State<HomePage> {
                     child: Text('登入'),
                   ),
                   ElevatedButton(
-                    onPressed: () {
+                    onPressed: () async{
                       /*
                       print("contractAddress.text");
                       Navigator.push(context,
@@ -184,9 +184,11 @@ class _HomePageState extends State<HomePage> {
 
                        */
 
-                      FoodSql sq1 =FoodSql("dogs","id INTEGER PRIMARY KEY, name TEXT, age INTEGER");
-                      //sq1.insertFood("123");
-
+                      FoodSql shopdata = FoodSql("shopdata","storeWallet TEXT, contractAddress TEXT"); //建立資料庫
+                      await shopdata.initializeDatabase(); //初始化資料庫 並且創建資料庫
+                      await shopdata.insertsql("shopdata",{"storeWallet": storeWallet.text,"contractAddress":contractAddress.text});
+                      //await shopdata.insertsql({"storeWallet": ,"contractAddress":"123"});
+                      print(await shopdata.querytsql());
 
                     },
                     child: Text('註冊帳號'),
