@@ -51,6 +51,7 @@ dependencies:
   http:
   csv: ^5.0.2
   package_info_plus: ^4.1.0
+  sqflite: ^2.3.0
 
 
 

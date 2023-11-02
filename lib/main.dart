@@ -2,14 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:googleapis/drive/v3.dart' as drive;
 import 'package:google_sign_in/google_sign_in.dart' as signIn;
-import 'package:googleapis/shared.dart';
 import 'dart:io';
 import 'sign_in.dart';
 import 'log_in.dart';
 import 'main2.dart';
+import 'SQL.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert'; // for utf8
 import 'dart:async'; // for Stream
+import 'dart:async';
+
+import 'package:flutter/widgets.dart';
+import 'package:path/path.dart';
+import 'package:sqflite/sqflite.dart';
+
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -47,7 +53,9 @@ class _HomePageState extends State<HomePage> {
   final TextEditingController contractAddress = TextEditingController();
   String result = "";
 
-  Future<http.Response> Checkacc(TextEditingController storeWallet, TextEditingController storePassword, TextEditingController storeAddress,) async {
+  Future<http.Response> Checkacc(TextEditingController storeWallet,
+      TextEditingController storePassword,
+      TextEditingController storeAddress,) async {
     final Map<String, String> data = {
       'storeWallet': storeWallet.text,
       'storePassword': storePassword.text,
@@ -143,12 +151,14 @@ class _HomePageState extends State<HomePage> {
                   ),
                   SizedBox(height: 20),
                   ElevatedButton(
-                    onPressed: () async{
-
-                      await  Checkacc(storeWallet,storePassword ,contractAddress);
+                    onPressed: () async {
+                      await Checkacc(
+                          storeWallet, storePassword, contractAddress);
                       print(result);
-                      if(result=="true") {
-                        Navigator.push(context , MaterialPageRoute(builder: (context) =>main2(contractAddress: contractAddress.text,)));
+                      if (result == "true") {
+                        Navigator.push(context, MaterialPageRoute(
+                            builder: (context) =>
+                                main2(contractAddress: contractAddress.text,)));
                       }
                       else {
                         showDialog(
@@ -166,9 +176,18 @@ class _HomePageState extends State<HomePage> {
                   ),
                   ElevatedButton(
                     onPressed: () {
+                      /*
                       print("contractAddress.text");
-                      Navigator.push(context , MaterialPageRoute(builder: (context) =>sign_in()));
+                      Navigator.push(context,
+                          MaterialPageRoute(builder: (context) => sign_in()));
                       //Navigator.push(context , MaterialPageRoute(builder: (context) =>sign_in()));
+
+                       */
+
+                      FoodSql sq1 =FoodSql("dogs","id INTEGER PRIMARY KEY, name TEXT, age INTEGER");
+                      //sq1.insertFood("123");
+
+
                     },
                     child: Text('註冊帳號'),
                   ),
