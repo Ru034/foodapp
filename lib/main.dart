@@ -3,10 +3,10 @@ import 'package:flutter/services.dart';
 import 'package:googleapis/drive/v3.dart' as drive;
 import 'package:google_sign_in/google_sign_in.dart' as signIn;
 import 'dart:io';
+import 'main2.dart';
 import 'sign_in.dart';
 import 'log_in.dart';
-import 'main2.dart';
-import 'SQL.dart';
+
 import 'package:http/http.dart' as http;
 import 'dart:convert'; // for utf8
 import 'dart:async'; // for Stream
@@ -15,8 +15,8 @@ import 'dart:async';
 import 'package:flutter/widgets.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
-
-
+import 'SQL.dart';
+FoodSql shopdata = FoodSql("shopdata","storeWallet TEXT, contractAddress TEXT"); //建立資料庫
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   runApp(const MyApp());
@@ -156,9 +156,11 @@ class _HomePageState extends State<HomePage> {
                           storeWallet, storePassword, contractAddress);
                       print(result);
                       if (result == "true") {
+                        await shopdata.initializeDatabase(); //初始化資料庫 並且創建資料庫
+                        await shopdata.insertsql("shopdata",{"storeWallet": storeWallet.text,"contractAddress":contractAddress.text});
                         Navigator.push(context, MaterialPageRoute(
                             builder: (context) =>
-                                main2(contractAddress: contractAddress.text,)));
+                                main2()));
                       }
                       else {
                         showDialog(
@@ -176,20 +178,11 @@ class _HomePageState extends State<HomePage> {
                   ),
                   ElevatedButton(
                     onPressed: () async{
-                      /*
+
                       print("contractAddress.text");
                       Navigator.push(context,
                           MaterialPageRoute(builder: (context) => sign_in()));
                       //Navigator.push(context , MaterialPageRoute(builder: (context) =>sign_in()));
-
-                       */
-
-                      FoodSql shopdata = FoodSql("shopdata","storeWallet TEXT, contractAddress TEXT"); //建立資料庫
-                      await shopdata.initializeDatabase(); //初始化資料庫 並且創建資料庫
-                      print(await shopdata.querytsql("shopdata")); //查詢所有資料
-                      //await shopdata.updatesql("shopdata", "contractAddress", contractAddress.text, "storeWallet", storeWallet.text);
-                      print(await shopdata.querytosql("shopdata","contractAddress",contractAddress.text)); //查詢單筆資料
-                      //print(await shopdata.querytsql("shopdata")); //查詢所有資料
 
                     },
                     child: Text('註冊帳號'),

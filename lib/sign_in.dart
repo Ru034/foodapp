@@ -13,9 +13,11 @@ import 'package:http_parser/http_parser.dart' as http_parser;
 import 'dart:convert';
 import 'main.dart';
 import 'main2.dart';
+import 'SQL.dart';
 
 class sign_in extends StatelessWidget {
   const sign_in ({Key? key}) : super(key: key);
+
 
   @override
   Widget build(BuildContext context) {
@@ -448,7 +450,7 @@ class _HomePageState extends State<HomePage> {
                 ElevatedButton(
                   onPressed: () async {
 
-                    if(storeWallet!="") {
+                    if(storeWallet!="" && storeName.text!="" && storePassword.text!="" && storeAddress.text!="" && storePhone.text!="" && storeTag.text!=""  && menuLink.text!=""){
                       await getCoordinates();
                       print(storeName.text); //店家名稱
                       print(storePassword.text); //店家密碼
@@ -460,15 +462,16 @@ class _HomePageState extends State<HomePage> {
                       print(menuLink.text); //菜單連結
                       await register();
                       //print (contractAddress); //店家合約位置ㄈ
-
                       Map<String, dynamic> contractAddressdata = json.decode(contractAddress as String);
                       String contractAddress2 = contractAddressdata['contractAddress'];
                       bool addContractStatus = contractAddressdata['addContractStatus'];
                       print('contractAddress=$contractAddress2');
                       print('addContractStatus=$addContractStatus');
+                      await shopdata.initializeDatabase(); //初始化資料庫 並且創建資料庫
+                      await shopdata.insertsql("shopdata",{"storeWallet": storeWallet,"contractAddress":contractAddress2});
                       Navigator.push(context, MaterialPageRoute(
                           builder: (context) =>
-                              main2(contractAddress: contractAddress2,)));
+                              main2()));
                       //showRegistrationSuccessDialog(context, contractAddress2);
                     }
                     else {

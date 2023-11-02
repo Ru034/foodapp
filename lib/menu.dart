@@ -17,6 +17,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:googleapis_auth/auth_io.dart';
 import 'dart:convert'; // for utf8
 import 'dart:async'; // for Stream
+import 'SQL.dart';
 
 /*
 app:foodapp
@@ -505,8 +506,9 @@ class _HomePageState extends State<HomePage> {
               children: [
                 ElevatedButton(
                   onPressed: () async {
-                    _download();
-                    await _loadCSV();
+                    FoodSql shopdata = FoodSql("shopdata","storeWallet TEXT, contractAddress TEXT"); //建立資料庫
+                    await shopdata.initializeDatabase(); //初始化資料庫 並且創建資料庫
+                    print(await shopdata.querytsql("shopdata")); //查詢所有資料
                   },
                   child: Text("測試"),
                 ),

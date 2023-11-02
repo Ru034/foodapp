@@ -13,9 +13,12 @@ class FoodSql {
       version: 1,
     ) ;
   }
+
   //使用時要放這段程式碼
   //await shopdata.initializeDatabase(); //初始化資料庫 並且創建資料庫
 
+
+  //FoodSql shopdata = FoodSql("shopdata","storeWallet TEXT, contractAddress TEXT"); //建立資料庫
   FoodSql(this.table_name,this.createsql_value) ; //建構子
   Future<void> insertsql(String db,Map<String, dynamic> mapvalue) async { //插入資料
       await database.insert(
