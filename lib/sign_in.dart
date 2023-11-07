@@ -60,6 +60,7 @@ class _HomePageState extends State<HomePage> {
   TextEditingController storeTag = TextEditingController(); //店家標籤
   TextEditingController latitudeAndLongitude  = TextEditingController(); //店家經緯度
   TextEditingController menuLink  = TextEditingController(); //菜單連結
+  TextEditingController storeEmail  = TextEditingController(); //菜單連結
   String storeWallet  =""; //店家錢包
   late String contractAddress  ; //上傳合約
   Map<String, double> latitudeAndLongitude_no = {
@@ -156,7 +157,7 @@ class _HomePageState extends State<HomePage> {
 
 
   Future<http.Response> createAlbum2(  TextEditingController storePasswordController  ,TextEditingController storeNameController, TextEditingController storeAddressController, TextEditingController storePhoneController,String storeWalletController
-      ,TextEditingController storeTagController ,TextEditingController latitudeAndLongitudeController,TextEditingController menuLinkController) {
+      ,TextEditingController storeTagController ,TextEditingController latitudeAndLongitudeController,TextEditingController menuLinkController,TextEditingController storeEmailController) {
     final Map<String, String> data = {
       'storePassword' : storePasswordController.text,
       'storeName' : storeNameController.text,
@@ -166,6 +167,7 @@ class _HomePageState extends State<HomePage> {
       'storeTag' : storeTagController.text,
       'latitudeAndLongitude' : latitudeAndLongitudeController.text,
       'menuLink' : menuLinkController.text,
+      'storeEmail' : storeEmailController.text,
     };
     print(data);
     final headers = {
@@ -180,7 +182,7 @@ class _HomePageState extends State<HomePage> {
   }
   Future<void> register() async { //todo
     try {
-      final response = await createAlbum2( storePassword,storeName,storeAddress,storePhone,storeWallet,storeTag,latitudeAndLongitude,menuLink);
+      final response = await createAlbum2( storePassword,storeName,storeAddress,storePhone,storeWallet,storeTag,latitudeAndLongitude,menuLink,storeEmail);
       if (response.statusCode == 200) {
         print("Response data: ${response.body}");
         // 將回應的值設置到 _storeWallet 控制器中
@@ -406,6 +408,28 @@ class _HomePageState extends State<HomePage> {
                     const Padding(
                       padding: EdgeInsets.only(top: 2, left: 20.0, bottom: 15),
                       child: Text(
+                        "信箱:",
+                        style: TextStyle(
+                          fontSize: 18,
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 10), // Add spacing between text and input field
+                    Expanded(
+                      child: TextField(
+                        controller: storeEmail,
+                        decoration: InputDecoration(
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                Row(
+                  children: [
+                    const Padding(
+                      padding: EdgeInsets.only(top: 2, left: 20.0, bottom: 15),
+                      child: Text(
                         "標籤:",
                         style: TextStyle(
                           fontSize: 18,
@@ -450,7 +474,7 @@ class _HomePageState extends State<HomePage> {
                 ElevatedButton(
                   onPressed: () async {
 
-                    if(storeWallet!="" && storeName.text!="" && storePassword.text!="" && storeAddress.text!="" && storePhone.text!="" && storeTag.text!=""  && menuLink.text!=""){
+                    if(storeWallet!="" && storeName.text!="" && storePassword.text!="" && storeAddress.text!="" && storePhone.text!="" && storeTag.text!=""  && menuLink.text!=""&& storeEmail.text!=""){
                       await getCoordinates();
                       print(storeName.text); //店家名稱
                       print(storePassword.text); //店家密碼
@@ -460,6 +484,7 @@ class _HomePageState extends State<HomePage> {
                       print(storeTag.text); //店家標籤
                       print(latitudeAndLongitude.text);  //店家經緯度
                       print(menuLink.text); //菜單連結
+                      print(storeEmail.text); //菜單連結
                       await register();
                       //print (contractAddress); //店家合約位置ㄈ
                       Map<String, dynamic> contractAddressdata = json.decode(contractAddress as String);
@@ -480,7 +505,7 @@ class _HomePageState extends State<HomePage> {
                         builder: (BuildContext context) {
                           return AlertDialog(
                             title: Text("註冊失敗"),
-                            content: Text("請記得申請錢包"),
+                            content: Text("請記得填寫所有資訊"),
                           );
                         },
                       );

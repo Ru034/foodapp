@@ -15,6 +15,7 @@ class FoodSql {
   }
 
   //使用時要放這段程式碼
+  //FoodSql shopdata = FoodSql("shopdata","storeWallet TEXT, contractAddress TEXT"); //建立資料庫
   //await shopdata.initializeDatabase(); //初始化資料庫 並且創建資料庫
 
 

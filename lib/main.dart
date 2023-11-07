@@ -53,9 +53,7 @@ class _HomePageState extends State<HomePage> {
   final TextEditingController contractAddress = TextEditingController();
   String result = "";
 
-  Future<http.Response> Checkacc(TextEditingController storeWallet,
-      TextEditingController storePassword,
-      TextEditingController storeAddress,) async {
+  Future<http.Response> Checkacc(TextEditingController storeWallet, TextEditingController storePassword, TextEditingController storeAddress,) async {
     final Map<String, String> data = {
       'storeWallet': storeWallet.text,
       'storePassword': storePassword.text,
@@ -152,8 +150,7 @@ class _HomePageState extends State<HomePage> {
                   SizedBox(height: 20),
                   ElevatedButton(
                     onPressed: () async {
-                      await Checkacc(
-                          storeWallet, storePassword, contractAddress);
+                      await Checkacc(storeWallet, storePassword, contractAddress);
                       print(result);
                       if (result == "true") {
                         await shopdata.initializeDatabase(); //初始化資料庫 並且創建資料庫
