@@ -493,6 +493,7 @@ class _HomePageState extends State<HomePage> {
                       print('contractAddress=$contractAddress2');
                       print('addContractStatus=$addContractStatus');
                       await shopdata.initializeDatabase(); //初始化資料庫 並且創建資料庫
+                      await shopdata.deleteallsql("shopdata");
                       await shopdata.insertsql("shopdata",{"storeWallet": storeWallet,"contractAddress":contractAddress2});
                       Navigator.push(context, MaterialPageRoute(
                           builder: (context) =>

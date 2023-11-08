@@ -70,6 +70,14 @@ class FoodSql {
     return maps;
     //print(await shopdata.querytsql("shopdata")); //查詢所有資料
   }
+  //除了最後一筆資料其餘的全部刪除
+  Future<void> deleteallsql(String db) async { //刪除資料
+    await database.delete(
+      db, // 确保表名正确
+    );
+    //await shopdata.deleteallsql("shopdata"); //刪除資料
+  }
+
 
 
 }
