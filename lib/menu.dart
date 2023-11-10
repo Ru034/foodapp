@@ -12,6 +12,7 @@ import 'package:google_sign_in/google_sign_in.dart' as signIn;
 import 'package:http/http.dart' as http;
 import 'package:googleapis_auth/googleapis_auth.dart' as auth;
 import 'package:googleapis/drive/v3.dart' show Media;
+import 'dart:convert'; // 確保引入 dart:convert 庫
 
 import 'package:file_picker/file_picker.dart';
 import 'package:googleapis_auth/auth_io.dart';
@@ -217,12 +218,10 @@ class _HomePageState extends State<HomePage> {
           // 上傳文件
           final driveFile = drive.File();
           driveFile.name = fileSystemEntity.uri.pathSegments.last;
-
           if (parentFolderId != null) {
             // Check if parentFolderId is not null
             driveFile.parents = [parentFolderId];
           }
-
           final media =
           Media(fileSystemEntity.openRead(), fileSystemEntity.lengthSync());
           final result =
@@ -252,7 +251,7 @@ class _HomePageState extends State<HomePage> {
   }
   late String shop_storeWallet ;
   late String shop_contractAddress ;
-  Future<void> getShopdata() async {
+  Future<void> getShopdata() async {//取得shopdata最後一筆資料
     FoodSql shopdata = FoodSql("shopdata", "storeWallet TEXT, contractAddress TEXT");
     await shopdata.initializeDatabase();
 
@@ -269,6 +268,51 @@ class _HomePageState extends State<HomePage> {
     print("shop_storeWallet: $shop_storeWallet");
     print("shop_contractAddress: $shop_contractAddress");
   }
+  String storeName=''   ; //店家名稱
+  String storeAddress=''; //店家地址
+  String storePhone=''; //店家電話
+  String storeWallet=''; //店家錢包
+  String currentID=''; //店家ID
+  String storeTag='';
+  String latitudeAndLongitude=''; //經緯度
+  String menuLink=''; //菜單連結
+  String storeEmail=''; //店家信箱
+
+
+  Future<void> getacc(String shop_storeWallet, String shop_contractAddress) async {
+    final Map<String, String> data = {
+      'contractAddress': shop_contractAddress,
+      'wallet': shop_storeWallet,
+    };
+    print(data);
+    final headers = {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    };
+    final body = Uri(queryParameters: data).query;
+    final response = await http.post(
+      Uri.parse('http://192.168.1.102:15000/contract/getStore'),
+      headers: headers,
+      body: body,
+    );
+    late String toll;
+    if (response.statusCode == 200) {
+      toll = response.body; // 將整個 API 回傳的內容直接賦值給 storeName
+      Map<String, dynamic> jsonData = jsonDecode(toll);
+      storeName = jsonData['storeName'] ?? '';
+      storeAddress = jsonData['storeAddress'] ?? '';
+      storePhone = jsonData['storePhone'] ?? '';
+      storeWallet = jsonData['storeWallet'] ?? '';
+      currentID = jsonData['currentID'] ?? '';
+      storeTag = jsonData['storeTag'] ?? '';
+      latitudeAndLongitude = jsonData['latitudeAndLongitude'] ?? '';
+      menuLink = jsonData['menuLink'] ?? '';
+      storeEmail = jsonData['storeEmail'] ?? '';
+      print(toll);
+    } else {
+      print('Request failed with status: ${response.statusCode}');
+    }
+  }
+
 
   Future<void> _download() async { //下載資料
     final googleSignIn =
@@ -508,7 +552,18 @@ class _HomePageState extends State<HomePage> {
               children: [
                 ElevatedButton(
                   onPressed: () async {
-                    getShopdata();
+                    await getShopdata();
+                    await getacc(shop_storeWallet, shop_contractAddress);
+                      print(storeName);
+                      print(storeAddress);
+                      print(storePhone);
+                      print(storeWallet);
+                      print(currentID);
+                      print(storeTag);
+                      print(latitudeAndLongitude);
+                      print(menuLink);
+                      print(storeEmail);
+
                     /*
                     FoodSql shopdata = FoodSql("shopdata","storeWallet TEXT, contractAddress TEXT"); //建立資料庫
                     await shopdata.initializeDatabase(); //初始化資料庫 並且創建資料庫
