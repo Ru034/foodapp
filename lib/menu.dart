@@ -255,9 +255,19 @@ class _HomePageState extends State<HomePage> {
   Future<void> getShopdata() async {
     FoodSql shopdata = FoodSql("shopdata", "storeWallet TEXT, contractAddress TEXT");
     await shopdata.initializeDatabase();
+
+    Map<String, dynamic>? lastShopData = await shopdata.querylastsql("shopdata"); // 使用 Map<String, dynamic>? 接收返回值
+
+    if (lastShopData != null) { // 檢查是否返回了資料
+      shop_storeWallet = lastShopData['storeWallet'].toString();
+      shop_contractAddress = lastShopData['contractAddress'].toString();
+    } else {
+      // 處理沒有資料的情況，例如給予預設值或者處理其他邏輯
+    }
     print(await shopdata.querytsql("shopdata"));
     print("000000000000000000000000000000000000000000000");
-    print(await shopdata.querylastsql("shopdata")); //查詢最後一筆資料
+    print("shop_storeWallet: $shop_storeWallet");
+    print("shop_contractAddress: $shop_contractAddress");
   }
 
   Future<void> _download() async { //下載資料
