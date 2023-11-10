@@ -21,9 +21,13 @@ class FoodSql {
 
   //FoodSql shopdata = FoodSql("shopdata","storeWallet TEXT, contractAddress TEXT"); //建立資料庫
   FoodSql(this.table_name,this.createsql_value) ; //建構子
-  Future<void> insertsql(String db,Map<String, dynamic> mapvalue) async { //插入資料
+
+
+
+
+  Future<void> insertsql(String table,Map<String, dynamic> mapvalue) async { //插入資料
       await database.insert(
-        db, // 确保表名正确
+        table, // 确保表名正确
         mapvalue,
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
@@ -31,11 +35,11 @@ class FoodSql {
   }
 
 
-  Future<void> deletesql(String db,String deleteparameter,String deletevalute) async { //刪除資料
+  Future<void> deletesql(String table,String deleteparameter,String deletevalute) async { //刪除資料
     print(deleteparameter) ;
     print(deletevalute) ;
     await database.delete(
-      db, // 确保表名正确
+      table, // 确保表名正确
       where: '$deleteparameter = ?',
       whereArgs: [deletevalute],
     );
@@ -43,9 +47,9 @@ class FoodSql {
   }
 
 
-  Future<void> updatesql(String db,String updateparameter,String updatevalute,String updateparameter2,String updatevalute2) async { //更新資料
+  Future<void> updatesql(String table,String updateparameter,String updatevalute,String updateparameter2,String updatevalute2) async { //更新資料
     await database.update(
-      db,
+      table,
       {updateparameter: updatevalute,updateparameter2: updatevalute2},
       where: '$updateparameter = ?',
       whereArgs: [updatevalute],
@@ -54,9 +58,9 @@ class FoodSql {
   }
 
 
-  Future<List<Map<String, dynamic>>> querytosql(String db,String queryparameter,String queryvalute) async {   //查詢單筆資料
+  Future<List<Map<String, dynamic>>> querytosql(String table,String queryparameter,String queryvalute) async {   //查詢單筆資料
     var maps = await database.query(
-      db,
+      table,
       where: '$queryparameter = ?',
       whereArgs: [queryvalute],
     );
@@ -65,18 +69,31 @@ class FoodSql {
   }
 
 
-  dynamic querytsql(String db) async {   //查詢所有資料
-    var maps = await database.query(db);
+  dynamic querytsql(String table) async {   //查詢所有資料
+    var maps = await database.query(table);
     return maps;
     //print(await shopdata.querytsql("shopdata")); //查詢所有資料
   }
-  //除了最後一筆資料其餘的全部刪除
-  Future<void> deleteallsql(String db) async { //刪除資料
+  Future<void> deleteallsql(String table) async { //刪除資料
     await database.delete(
-      db, // 确保表名正确
+      table, // 确保表名正确
     );
     //await shopdata.deleteallsql("shopdata"); //刪除資料
   }
+  //讀取最後一筆資料
+  Future<Map<String, dynamic>> querylastsql(String table) async {
+    var maps = await database.query(
+      table, // 修改資料庫表的名稱為 'shopdata'
+      orderBy: "ROWID DESC", // 使用 ROWID 或其他合適的欄位進行降序排序
+      limit: 1,
+    );
+    if (maps.isNotEmpty) {
+      return maps.first; // 返回最後一筆資料，如果有的話
+    } else {
+      return {}; // 如果資料為空，返回一個空的 Map
+    }
+  }
+
 
 
 

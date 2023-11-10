@@ -26,23 +26,14 @@ Launcher:com.example.foodapp.MainActivity
 SHA1: 83:4D:3C:8A:4C:BB:10:13:48:81:E5:F3:EA:8D:E9:19:1B:0F:CC:B1
  */
 //增加從雲端抓資料與輸出資料
-class GoogleAuthClient extends http.BaseClient {
+class GoogleAuthClient extends http.BaseClient {     //創建一個 GoogleAuthClient，這是一個用於進行 Google API 請求的客戶端，使用先前獲取的身份驗證標頭進行身份驗證。
   final Map<String, String> _headers;
   final http.Client _client = new http.Client();
-
   GoogleAuthClient(this._headers);
-
   Future<http.StreamedResponse> send(http.BaseRequest request) {
     return _client.send(request..headers.addAll(_headers));
   }
 }
-/*
-void main() {
-  WidgetsFlutterBinding.ensureInitialized();
-  runApp(const menu());
-}
-
- */
 class menu extends StatelessWidget {
   const menu({Key? key}) : super(key: key);
 
@@ -58,19 +49,12 @@ class menu extends StatelessWidget {
     );
   }
 }
-
-Future<String> loadAsset() async {
-  //這是一個用來非同步讀取資源的方法，返回一個表示CSV檔案內容的字串
-  return await rootBundle.loadString('assets/file.csv');
-}
-
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
 
   @override
   State<HomePage> createState() => _HomePageState();
 }
-
 class _HomePageState extends State<HomePage> {
   //HomePage 的狀態類別，用於管理狀態變化
   List<List<dynamic>> _data = [];
@@ -93,23 +77,22 @@ class _HomePageState extends State<HomePage> {
       print('Error saving CSV data: $e');
     }
   }
-
+  Future<String> loadAsset() async { //讀取csv檔案
+    return await rootBundle.loadString('assets/file.csv');
+  }
   @override
   void initState() {
     //初始化狀態，然後調用 _loadCSV() 方法
     super.initState();
     _loadCSV();
   }
-
   String? _imagePath;
-
-  void deleteDataAtIndex(int index) {
+  void deleteDataAtIndex(int index) {//刪除資料
     setState(() {
       _data.removeAt(index);
     });
   }
-
-  void addNewDataAtIndex(
+  void addNewDataAtIndex(//新增資料
       String listData, String newOption, String newPrice, int ord, int index) {
     List<dynamic> newData = [ord, "", "", listData, newOption, newPrice, ""];
     setState(() {
@@ -117,7 +100,7 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  Future<void> saveCsvToLocalDirectory() async {
+  Future<void> saveCsvToLocalDirectory() async {//儲存資料 本地
     try {
       final String csvContent = const ListToCsvConverter().convert(_data);
       final directory = Directory(
@@ -136,7 +119,7 @@ class _HomePageState extends State<HomePage> {
   }
   }
 
-  Future<void> _pickImage(int index) async {
+  Future<void> _pickImage(int index) async { //選擇圖片
     final XFile? pickedImage = await ImagePicker().pickImage(
       source: ImageSource.gallery, // Choose from the gallery
     );
@@ -159,7 +142,7 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  Future<void> createNewDirectory() async {
+  Future<void> createNewDirectory() async { //創建新資料夾
     final Directory newDirectory =
     Directory('/data/user/0/com.example.foodapp/new');
     if (!await newDirectory.exists()) {
@@ -167,7 +150,7 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  Future<void> movePhotosToNewDirectory() async {
+  Future<void> movePhotosToNewDirectory() async { //移動圖片到新資料夾
     final Directory cacheDirectory = await getTemporaryDirectory();
     final Directory newDirectory =
     Directory('/data/user/0/com.example.foodapp/new');
@@ -181,7 +164,7 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  Future<void> _incrementCounter() async {
+  Future<void> _incrementCounter() async { //增加計數器  用於測試
     final googleSignIn =
     signIn.GoogleSignIn.standard(scopes: [drive.DriveApi.driveScope]);
     final signIn.GoogleSignInAccount? account = await googleSignIn.signIn();
@@ -223,7 +206,7 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  Future<void> _uploadFolderContents(
+  Future<void> _uploadFolderContents( //上傳文件夾內容
       drive.DriveApi driveApi, String localFolderPath,
       {String? parentFolderId}) async {
     final dir = Directory(localFolderPath);
@@ -267,8 +250,17 @@ class _HomePageState extends State<HomePage> {
       }
     }
   }
+  late String shop_storeWallet ;
+  late String shop_contractAddress ;
+  Future<void> getShopdata() async {
+    FoodSql shopdata = FoodSql("shopdata", "storeWallet TEXT, contractAddress TEXT");
+    await shopdata.initializeDatabase();
+    print(await shopdata.querytsql("shopdata"));
+    print("000000000000000000000000000000000000000000000");
+    print(await shopdata.querylastsql("shopdata")); //查詢最後一筆資料
+  }
 
-  Future<void> _download() async {
+  Future<void> _download() async { //下載資料
     final googleSignIn =
     signIn.GoogleSignIn.standard(scopes: [drive.DriveApi.driveScope]);
     final signIn.GoogleSignInAccount? account = await googleSignIn.signIn();
@@ -277,9 +269,9 @@ class _HomePageState extends State<HomePage> {
       if (authHeaders != null) {
         final authenticateClient = GoogleAuthClient(authHeaders);
         final driveApi = drive.DriveApi(authenticateClient);
+
         final googleDriveFolderId ='1cOKclriMA8y4dnvbqgRr3szq8NZUiYEX'; //Todo 解決取得google drive裡檔案id的問題
-        //https://drive.google.com/drive/folders/1cOKclriMA8y4dnvbqgRr3szq8NZUiYEX?usp=drive_link
-        //11JVW4Y1LkucKj3g9ATvspEBfcgoBibL3
+        //1cOKclriMA8y4dnvbqgRr3szq8NZUiYEX
         final localFolderPath = '/data/user/0/com.example.foodapp/new';
         final directory = Directory(localFolderPath);
         if (directory.existsSync()) {
@@ -506,9 +498,13 @@ class _HomePageState extends State<HomePage> {
               children: [
                 ElevatedButton(
                   onPressed: () async {
+                    getShopdata();
+                    /*
                     FoodSql shopdata = FoodSql("shopdata","storeWallet TEXT, contractAddress TEXT"); //建立資料庫
                     await shopdata.initializeDatabase(); //初始化資料庫 並且創建資料庫
                     print(await shopdata.querytsql("shopdata")); //查詢所有資料
+
+                     */
                   },
                   child: Text("測試"),
                 ),
