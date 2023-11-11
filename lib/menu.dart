@@ -263,10 +263,10 @@ class _HomePageState extends State<HomePage> {
     } else {
       // 處理沒有資料的情況，例如給予預設值或者處理其他邏輯
     }
-    print(await shopdata.querytsql("shopdata"));
-    print("000000000000000000000000000000000000000000000");
-    print("shop_storeWallet: $shop_storeWallet");
-    print("shop_contractAddress: $shop_contractAddress");
+    // print(await shopdata.querytsql("shopdata"));
+    // print("000000000000000000000000000000000000000000000");
+    // print("shop_storeWallet: $shop_storeWallet");
+    // print("shop_contractAddress: $shop_contractAddress");
   }
   String storeName=''   ; //店家名稱
   String storeAddress=''; //店家地址
@@ -277,6 +277,11 @@ class _HomePageState extends State<HomePage> {
   String latitudeAndLongitude=''; //經緯度
   String menuLink=''; //菜單連結
   String storeEmail=''; //店家信箱
+  /*
+  menuUpdate 更新菜單
+  getMenuVersion 查看菜單版本號
+  getMenu 用菜單版本號獲取對應的菜單
+   */
 
 
   Future<void> getacc(String shop_storeWallet, String shop_contractAddress) async {
@@ -307,7 +312,60 @@ class _HomePageState extends State<HomePage> {
       latitudeAndLongitude = jsonData['latitudeAndLongitude'] ?? '';
       menuLink = jsonData['menuLink'] ?? '';
       storeEmail = jsonData['storeEmail'] ?? '';
-      print(toll);
+      //print(toll);
+    } else {
+      print('Request failed with status: ${response.statusCode}');
+    }
+  }
+  late String menuVersion  ; //取得menu版本
+  Future<void> menuid(String shop_storeWallet, String shop_contractAddress) async {
+    final Map<String, String> data = {
+      'contractAddress': shop_contractAddress,
+      'wallet': shop_storeWallet,
+    };
+    print(data);
+    final headers = {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    };
+    final body = Uri(queryParameters: data).query;
+    final response = await http.post(
+      Uri.parse('http://192.168.1.102:15000/contract/getMenuVersion'),
+      headers: headers,
+      body: body,
+    );
+    late String menuid;
+    if (response.statusCode == 200) {
+      menuid = response.body; // 將整個 API 回傳的內容直接賦值給 storeName
+      Map<String, dynamic> jsonData = jsonDecode(menuid);
+      menuVersion = jsonData['menuVersion'] ?? '';
+      print("menuVersion: $menuVersion");
+    } else {
+      print('Request failed with status: ${response.statusCode}');
+    }
+  }
+
+  Future<void> getmenu(String shop_storeWallet, String shop_contractAddress , String menuVersion) async {
+    final Map<String, String> data = {
+      'contractAddress': shop_contractAddress,
+      'wallet': shop_storeWallet,
+      'menuVersion': menuVersion,
+    };
+    print(data);
+    final headers = {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    };
+    final body = Uri(queryParameters: data).query;
+    final response = await http.post(
+      Uri.parse('http://192.168.1.102:15000/contract/getMenu'),
+      headers: headers,
+      body: body,
+    );
+    late String menulink;
+    if (response.statusCode == 200) {
+      menulink = response.body; // 將整個 API 回傳的內容直接賦值給 storeName
+      Map<String, dynamic> jsonData = jsonDecode(menulink);
+      menuLink = jsonData['menuLink'] ?? '';
+      print("menuLink: $menuLink");
     } else {
       print('Request failed with status: ${response.statusCode}');
     }
@@ -315,6 +373,13 @@ class _HomePageState extends State<HomePage> {
 
 
   Future<void> _download() async { //下載資料
+    await getShopdata();
+    await getacc(shop_storeWallet, shop_contractAddress);
+    await menuid(shop_storeWallet, shop_contractAddress); //menuVersion
+    await getmenu(shop_storeWallet, shop_contractAddress, menuVersion); //menuLink
+    print("1111111111111111");
+    print("menuVersion: $menuVersion");
+
     final googleSignIn =
     signIn.GoogleSignIn.standard(scopes: [drive.DriveApi.driveScope]);
     final signIn.GoogleSignInAccount? account = await googleSignIn.signIn();
@@ -324,7 +389,7 @@ class _HomePageState extends State<HomePage> {
         final authenticateClient = GoogleAuthClient(authHeaders);
         final driveApi = drive.DriveApi(authenticateClient);
 
-        final googleDriveFolderId ='1cOKclriMA8y4dnvbqgRr3szq8NZUiYEX'; //Todo 解決取得google drive裡檔案id的問題
+        final googleDriveFolderId =menuLink; //Todo 解決取得google drive裡檔案id的問題
         //1cOKclriMA8y4dnvbqgRr3szq8NZUiYEX
         final localFolderPath = '/data/user/0/com.example.foodapp/new';
         final directory = Directory(localFolderPath);
@@ -553,17 +618,9 @@ class _HomePageState extends State<HomePage> {
                 ElevatedButton(
                   onPressed: () async {
                     await getShopdata();
-                    await getacc(shop_storeWallet, shop_contractAddress);
-                      print(storeName);
-                      print(storeAddress);
-                      print(storePhone);
-                      print(storeWallet);
-                      print(currentID);
-                      print(storeTag);
-                      print(latitudeAndLongitude);
-                      print(menuLink);
-                      print(storeEmail);
-
+                    await getacc(shop_storeWallet, shop_contractAddress);//取得店家資料
+                    await menuid(shop_storeWallet, shop_contractAddress); //menuVersion
+                    await getmenu(shop_storeWallet, shop_contractAddress, menuVersion); //menuLink
                     /*
                     FoodSql shopdata = FoodSql("shopdata","storeWallet TEXT, contractAddress TEXT"); //建立資料庫
                     await shopdata.initializeDatabase(); //初始化資料庫 並且創建資料庫
