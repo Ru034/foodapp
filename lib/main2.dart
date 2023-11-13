@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:store_menu/new_Order.dart';
 import 'menu.dart';
+import 'take_Order.dart';
+import 'new_Order.dart';
+import 'wallet.dart';
+import 'setting.dart';
 import 'sign_in.dart';
 import 'log_in.dart';
 import 'SQL.dart';
@@ -44,7 +49,10 @@ class _MyHomePageState extends State<MyHomePage> {
   int index = 0;//選擇NavigationBar的項目
   final screens = [
     const  menu(),
-    const  menu(),
+    const  new_Order(),
+    const  take_Order(),
+    const  wallet(),
+    const  setting(),
   ];//傳送至頁面的陣列
 
   @override
@@ -69,14 +77,30 @@ class _MyHomePageState extends State<MyHomePage> {
           destinations: const [
             NavigationDestination(
               icon: Icon(Icons.restaurant_menu),
-              selectedIcon: Icon(Icons.restaurant_menu),
+              //selectedIcon: Icon(Icons.restaurant_menu),
               label: '更改菜單',
             ),
             NavigationDestination(
-              icon: Icon(Icons.restaurant_menu),
-              selectedIcon: Icon(Icons.restaurant_menu),
-              label: '更改菜單',
+              icon: Icon(Icons.doorbell_outlined),
+              //selectedIcon: Icon(Icons.restaurant_menu),
+              label: '新訂單',
             ),
+            NavigationDestination(
+              icon: Icon(Icons.add_task),
+              //selectedIcon: Icon(Icons.restaurant_menu),
+              label: '已接訂單',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.wallet),
+              //selectedIcon: Icon(Icons.restaurant_menu),
+              label: '錢包',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.settings),
+              //selectedIcon: Icon(Icons.restaurant_menu),
+              label: '設定',
+            ),
+
           ],
         ),
       ),
