@@ -243,19 +243,7 @@ class _HomePageState extends State<HomePage> {
           final ByteData data = await rootBundle.load('assets/菜單.csv');
           final List<int> bytes = data.buffer.asUint8List();
 
-          // Create a new file and write the contents
-/*
-          final File newCsvFile = File('${tempDir.path}/new_data.csv');
-          await newCsvFile.writeAsBytes(bytes);
-          final csvFileMetadata = drive.File()
-            ..name = "new_data.csv"
-            ..parents = [folder.id!];
 
-          final drive.Media fileContent = drive.Media(newCsvFile.openRead(), newCsvFile.lengthSync());
-          await driveApi.files.create(csvFileMetadata, uploadMedia: fileContent);
-
-
- */
           final permission = drive.Permission()
             ..type = "anyone"
             ..role = "reader";

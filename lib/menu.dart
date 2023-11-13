@@ -164,6 +164,7 @@ class _HomePageState extends State<HomePage> {
       }
     }
   }
+  late String menunewlink;
 
   Future<void> _incrementCounter() async { //增加計數器  用於測試
     final googleSignIn =
@@ -196,8 +197,13 @@ class _HomePageState extends State<HomePage> {
             ..role = "reader";
           await driveApi.permissions.create(permission, folder.id!);
           // 获取文件夹的 URL
+
           final folderUrl = "https://drive.google.com/drive/folders/${folder.id}";
+          menunewlink = folder.id!;
+          print("menunewlink: $menunewlink");
+
           print("Folder URL: $folderUrl");
+
         }
       } else {
         print("Auth headers are null");
@@ -227,6 +233,7 @@ class _HomePageState extends State<HomePage> {
           final result =
           await driveApi.files.create(driveFile, uploadMedia: media);
           print("Uploaded ${driveFile.name}: ${result.toJson()}");
+
         } else if (fileSystemEntity is Directory) {
           // 上傳子文件夾
           final driveFolder = drive.File();
@@ -344,6 +351,7 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+
   Future<void> getmenu(String shop_storeWallet, String shop_contractAddress , String menuVersion) async {
     final Map<String, String> data = {
       'contractAddress': shop_contractAddress,
@@ -370,6 +378,26 @@ class _HomePageState extends State<HomePage> {
       print('Request failed with status: ${response.statusCode}');
     }
   }
+  //menuUpdate(shop_storeWallet, shop_contractAddress, "0", menunewlink);
+  Future<void> menuUpdate(String shop_storeWallet, String shop_contractAddress , String storePassword,String updateMenuLink) async {
+    final Map<String, String> data = {
+      'contractAddress': shop_contractAddress,
+      'storeWallet': shop_storeWallet,
+      'storePassword': storePassword,
+      'updateMenuLink': updateMenuLink,
+    };
+    print(data);
+    final headers = {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    };
+    final body = Uri(queryParameters: data).query;
+    final response = await http.post(
+      Uri.parse('http://192.168.1.102:15000/contract/menuUpdate'),
+      headers: headers,
+      body: body,
+    );
+  }
+
 
 
   Future<void> _download() async { //下載資料
@@ -389,7 +417,7 @@ class _HomePageState extends State<HomePage> {
         final authenticateClient = GoogleAuthClient(authHeaders);
         final driveApi = drive.DriveApi(authenticateClient);
 
-        final googleDriveFolderId =menuLink; //Todo 解決取得google drive裡檔案id的問題
+        final googleDriveFolderId =menuLink;
         //1cOKclriMA8y4dnvbqgRr3szq8NZUiYEX
         final localFolderPath = '/data/user/0/com.example.foodapp/new';
         final directory = Directory(localFolderPath);
@@ -563,16 +591,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-/*
-  void _loadCSV() async {
-    final rawData = await rootBundle.loadString("assets/M1.csv");
-    List<List<dynamic>> listData = const CsvToListConverter().convert(rawData);
-    setState(() {
-      _data = listData;
-    });
-  }
 
-*/
 
   Future<void> _loadCSV() async {
     await _download();
@@ -1161,14 +1180,15 @@ class _HomePageState extends State<HomePage> {
                             textStyle: const TextStyle(fontSize: 20),
                           ),
                           onPressed: () async {
-                            await createNewDirectory();
-                            await movePhotosToNewDirectory();
-                            await saveCsvToNewDirectory();
+                            await createNewDirectory(); // 創建新資料夾
+                            await movePhotosToNewDirectory(); // 將圖片移動到新資料夾
+                            await saveCsvToNewDirectory();// 將csv檔案移動到新資料夾
                             for (int cs = 0; cs < _data.length; cs++) {
                               _data[cs][2] = cs + 1;
                             }
-                            saveCsvToLocalDirectory();
+                            await saveCsvToLocalDirectory(); // 將csv檔案移動到本地資料夾
                             await _incrementCounter();
+                            await menuUpdate(shop_storeWallet, shop_contractAddress, "0", menunewlink);
                             // 操作完成後顯示更新成功的對話框
 /*
                             showDialog(
