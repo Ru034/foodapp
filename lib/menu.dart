@@ -258,15 +258,17 @@ class _HomePageState extends State<HomePage> {
   }
   late String shop_storeWallet ;
   late String shop_contractAddress ;
+  late String shop_storePassword ;
   Future<void> getShopdata() async {//取得shopdata最後一筆資料
-    FoodSql shopdata = FoodSql("shopdata", "storeWallet TEXT, contractAddress TEXT");
+    FoodSql shopdata = FoodSql("shopdata2", "storeWallet TEXT, contractAddress TEXT, storePassword TEXT");
     await shopdata.initializeDatabase();
 
-    Map<String, dynamic>? lastShopData = await shopdata.querylastsql("shopdata"); // 使用 Map<String, dynamic>? 接收返回值
+    Map<String, dynamic>? lastShopData = await shopdata.querylastsql("shopdata2"); // 使用 Map<String, dynamic>? 接收返回值
 
     if (lastShopData != null) { // 檢查是否返回了資料
       shop_storeWallet = lastShopData['storeWallet'].toString();
       shop_contractAddress = lastShopData['contractAddress'].toString();
+      shop_storePassword = lastShopData['storePassword'].toString();
     } else {
       // 處理沒有資料的情況，例如給予預設值或者處理其他邏輯
     }
@@ -1188,7 +1190,7 @@ class _HomePageState extends State<HomePage> {
                             }
                             await saveCsvToLocalDirectory(); // 將csv檔案移動到本地資料夾
                             await _incrementCounter();
-                            await menuUpdate(shop_storeWallet, shop_contractAddress, "0", menunewlink);
+                            await menuUpdate(shop_storeWallet, shop_contractAddress, shop_storePassword, menunewlink);
                             // 操作完成後顯示更新成功的對話框
 /*
                             showDialog(

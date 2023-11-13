@@ -16,10 +16,11 @@ import 'package:flutter/widgets.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 import 'SQL.dart';
-FoodSql shopdata = FoodSql("shopdata","storeWallet TEXT, contractAddress TEXT "); //建立資料庫
-void main() {
+FoodSql shopdata = FoodSql("shopdata2","storeWallet TEXT, contractAddress TEXT, storePassword TEXT "); //建立資料庫
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   runApp(const MyApp());
+
 }
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
@@ -155,7 +156,7 @@ class _HomePageState extends State<HomePage> {
                       if (result == "true") {
                         await shopdata.initializeDatabase(); //初始化資料庫 並且創建資料庫
                         //await shopdata.deleteallsql("shopdata");
-                        await shopdata.insertsql("shopdata",{"storeWallet": storeWallet.text,"contractAddress":contractAddress.text});
+                        await shopdata.insertsql("shopdata2",{"storeWallet": storeWallet.text,"contractAddress":contractAddress.text,"storePassword":storePassword.text}); //插入資料
                         Navigator.push(context, MaterialPageRoute(
                             builder: (context) =>
                                 main2()));
