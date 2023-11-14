@@ -665,7 +665,7 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
                 const Padding(
-                  padding: EdgeInsets.only(top: 15, left: 10.0, bottom: 15),
+                  padding: EdgeInsets.only(top: 15, left: 30.0, bottom: 15),
                   //const EdgeInsets.only(left: 40.0)
                   child: Text(
                     "單點",

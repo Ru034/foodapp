@@ -153,119 +153,72 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        body: ListView(
-        children: [
-        Column(
+      body: Padding(
+        padding: EdgeInsets.all(20),
+        child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                const Padding(
-                  padding: EdgeInsets.all(15),
-                ),
-              ],
+            Text(
+              "錢包:",
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
             ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                const Padding(
-                  padding: EdgeInsets.all(15),
-                ),
-                Text(
-                  "錢包:",
-                  style: TextStyle(
-                    fontSize: 30, // 調整字體大小
-                    //fontWeight: FontWeight.bold, // 加粗
+            SizedBox(height: 5),
+            Container(
+              padding: EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                storeWallet,
+                style: TextStyle(fontSize: 15),
+              ),
+            ),
+            SizedBox(height: 20),
+            Text(
+              "餘額:",
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            SizedBox(height: 5),
+            Container(
+              padding: EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  Text(
+                    //Todo 從API抓值
+                    money,
+                    style: TextStyle(fontSize: 15),
                   ),
-                ),
-              ],
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                const Padding(
-                  padding: EdgeInsets.all(5),
-                ),
-                Text(
-                  storeWallet,
-                  style: TextStyle(
-                    fontSize: 15, // 調整字體大小
-                    //fontWeight: FontWeight.bold, // 加粗
+                  SizedBox(width: 5),
+                  Text(
+                    "wei",
+                    style: TextStyle(fontSize: 15),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-            Row(
-              children: [
-                const Padding(
-                  padding: EdgeInsets.all(15),
-                ),
-              ],
+            SizedBox(height: 20),
+            Text(
+              "交易明細",
+              style: TextStyle(
+                fontSize: 30,
+                fontWeight: FontWeight.bold,
+              ),
             ),
-
-
-            Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                const Padding(
-                  padding: EdgeInsets.all(15),
-                ),
-                Text(
-                  "餘額:",
-                  style: TextStyle(
-                    fontSize: 30, // 調整字體大小
-                    //fontWeight: FontWeight.bold, // 加粗
-                  ),
-                ),
-                const Padding(
-                  padding: EdgeInsets.all(5),
-                ),
-
-                Text(
-                  //Todo 從API抓值
-                  money,
-                  style: TextStyle(
-                    fontSize: 15, // 調整字體大小
-                    //fontWeight: FontWeight.bold, // 加粗
-                  ),
-                ),
-                const Padding(
-                  padding: EdgeInsets.all(5),
-                ),
-                Text(
-                  "wei",
-                  style: TextStyle(
-                    fontSize: 30, // 調整字體大小
-                    //fontWeight: FontWeight.bold, // 加粗
-                  ),
-                ),
-              ],
-            ),
-            Row(
-              children: [
-                const Padding(
-                  padding: EdgeInsets.all(15),
-                ),
-              ],
-            ),
-            Row(
-              children: [
-                const Padding(
-                  padding: EdgeInsets.all(15),
-                ),
-
-                Text(
-                  "交易明細",
-                  style: TextStyle(
-                    fontSize: 40, // 調整字體大小
-                    fontWeight: FontWeight.bold, // 加粗
-                  ),
-                ),
-              ],
-            ),
+            // 這裡可以加入交易明細的部分，顯示交易紀錄等等
           ],
         ),
-      ],
-    ));
+      ),
+    );
   }
 }
